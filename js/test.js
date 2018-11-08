@@ -1,4 +1,4 @@
-
+var tempo = Date.now();
 var somme = []; 
 var table = []; 
 var taille = {hauteur:0, largeur:0};
@@ -87,7 +87,6 @@ function ajouterVoisin(ligne, colonne) {
 }
 
 function nouveauCycle() {
-	
 	for (var ligne = 0, hauteur = taille.hauteur; ligne < hauteur; ligne++) {
 		for (var colonne = 0, largeur = taille.largeur; colonne < largeur; colonne++) {
 			//si la cellule est vivante, ajouter +1 à la somme des voisins de chaque cellule voisine
@@ -106,6 +105,8 @@ function nouveauCycle() {
 			somme[ligne][colonne] = 0;
 		}
 	}
+	afficheTest.innerHTML = (Date.now() - tempo);
+	tempo = Date.now();
 }
 
 function changerStatu(elem) {
@@ -115,12 +116,14 @@ function changerStatu(elem) {
 	table[i][j] = !(table[i][j]);
 }
 
-taille.hauteur = 250;
-taille.largeur = 250;
+taille.hauteur = 150;
+taille.largeur = 150;
 var painting = false;
+var afficheTest = document.getElementById("fill");
 
 setGame();
 
+console.log(document.styleSheets[0].cssRules[0]);
 document.styleSheets[0].cssRules[0].style.width = (95 / taille.largeur) + 'vh';
 document.styleSheets[0].cssRules[0].style.height = (95 / taille.hauteur) + 'vh';
 
@@ -133,7 +136,7 @@ launcher.onclick = function(){
 		launcher.innerHTML = 'Play';
 	}
 	else {
-		isAlive = setInterval(nouveauCycle, 100);
+		isAlive = setInterval(nouveauCycle, 10);
 		launcher.innerHTML = 'Pause';
 	}
 }
