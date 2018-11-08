@@ -5,15 +5,13 @@ var taille = {hauteur:0, largeur:0};
 
 
 function setCell(ligne, colonne, mode) {
-	var id = ligne * taille.largeur + colonne;
-	somme[id] = 0;
 	switch (mode) {
 		case 'aleatoire':
-			table[id] = (Math.round(Math.random()) == 0);
+			table[ligne][colonne] = (Math.round(Math.random()) == 0);
 			break;
 	
 		case 'vide':
-			table[id] = false;
+			table[ligne][colonne] = false;
 			break;
 	
 		/*case 'extension':
@@ -21,12 +19,11 @@ function setCell(ligne, colonne, mode) {
 			break;*/
 	
 		default:
-			table[id] = false;
+			table[ligne][colonne] = false;
 	}
 }
 
 function setGrilleHTML() {
-	var id = 0;
 	var grilleHTML = document.createElement('table');
 	grilleHTML.id = 'grille';
 	
@@ -34,11 +31,9 @@ function setGrilleHTML() {
 		var ligneHTML = document.createElement('tr');
 		
 		for (var colonne = 0, largeur = taille.largeur; colonne < largeur; colonne++) {
-			id = ligne * largeur + colonne;
-			
 			var celluleHTML = document.createElement('td');
-			celluleHTML.id = id
-			celluleHTML.className = (table[id])?'alive':'dead';
+			celluleHTML.id = ligne * largeur + colonne;
+			celluleHTML.className = (table[ligne][colonne])?'alive':'dead';
 			
 			//Ajoute les différents évènements de sourie permettant d'éditer la grille manuellement
 			celluleHTML.onmouseenter = function(){
@@ -62,9 +57,13 @@ function setGrilleHTML() {
 
 function setGame(mode = 'aleatoire') {
 	table = [];
+	somme = [];
 	for (var ligne = 0, hauteur = taille.hauteur; ligne < hauteur; ligne++) {
+		table[ligne] = [];
+		somme[ligne] = [];
 		for (var colonne = 0, largeur = taille.largeur; colonne < largeur; colonne++) {
 			setCell(ligne, colonne, mode);
+			somme[ligne][colonne] = 0;
 		}
 	}
 	setGrilleHTML();
@@ -81,44 +80,43 @@ function ajouterVoisin(ligne, colonne) {
 			// valeur relative = connecte les bords (exemple si i = -1 avec une hauteur de 10, -1 +10 = 9 et 9 % 10 = 9 ce qui correspond à la dernière ligne)
 			iRelatif = (i < 0) ? hauteur - 1 : (i < hauteur) ? i : 0;
 			jRelatif = (j < 0) ? largeur - 1 : (j < largeur) ? j : 0;
-			somme[iRelatif * largeur + jRelatif]++;
+			somme[iRelatif][jRelatif]++;
 		}
 	}
-	somme[ligne * largeur + colonne]--;
+	somme[ligne][colonne]--;
 }
 
 function nouveauCycle() {
-	var id = 0;
 	
 	for (var ligne = 0, hauteur = taille.hauteur; ligne < hauteur; ligne++) {
 		for (var colonne = 0, largeur = taille.largeur; colonne < largeur; colonne++) {
-			id = ligne * largeur + colonne;
 			//si la cellule est vivante, ajouter +1 à la somme des voisins de chaque cellule voisine
-			if(table[id]) ajouterVoisin(ligne, colonne);
+			if(table[ligne][colonne]) ajouterVoisin(ligne, colonne);
 		}
 	}
 	
 	for (var ligne = 0, hauteur = taille.hauteur; ligne < hauteur; ligne++) {
 		for (var colonne = 0, largeur = taille.largeur; colonne < largeur; colonne++) {
-			id = ligne * largeur + colonne;
 			//Actualise la grille à partir de la somme des voisin de chaque cellule
-			var nouveauStatut = (somme[id] == 3 || (table[id] && somme[id] == 2));
-			if(table[id] != nouveauStatut) {
-				table[id] = nouveauStatut;
-				document.getElementById(id).className = (table[id])?'alive':'dead';
+			var nouveauStatut = (somme[ligne][colonne] == 3 || (table[ligne][colonne] && somme[ligne][colonne] == 2));
+			if(table[ligne][colonne] != nouveauStatut) {
+				table[ligne][colonne] = nouveauStatut;
+				document.getElementById(ligne * largeur + colonne).className = (table[ligne][colonne])?'alive':'dead';
 			}
-			somme[id] = 0;
+			somme[ligne][colonne] = 0;
 		}
 	}
 }
 
 function changerStatu(elem) {
 	elem.className = (elem.className == 'alive')?'dead':'alive';
-	table[elem.id] = !(table[elem.id]);
+	var i = Math.floor(elem.id / taille.largeur);
+	var j = elem.id % taille.largeur;
+	table[i][j] = !(table[i][j]);
 }
 
-taille.hauteur = 150;
-taille.largeur = 150;
+taille.hauteur = 250;
+taille.largeur = 250;
 var painting = false;
 
 setGame();
@@ -140,7 +138,12 @@ launcher.onclick = function(){
 	}
 }
 document.getElementById("nuke").onclick = function(){
-	setGame('vide');
+	for (var i = 0; i < taille.hauteur; i++) {
+		for (var j = 0; j < taille.largeur; j++) {
+			table[i][j] = false;
+			document.getElementById(i * taille.largeur + j).className = 'dead';
+		}
+	}
 }
 document.getElementById("fill").onclick = function(){
 	setGame('vide');
