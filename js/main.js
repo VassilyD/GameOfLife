@@ -92,7 +92,7 @@ function actuTable() {
 var lignes = 0;
 var colonnes = 0;
 var painting = false;
-genTable(150,150);
+genTable(250,250);
 var isAlive = 0;
 var launcher = document.getElementById("launcher");
 launcher.onclick = function(){
