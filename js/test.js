@@ -2,6 +2,7 @@ var tempo = Date.now();
 var somme = []; 
 var table = []; 
 var taille = {hauteur:0, largeur:0};
+var zoom = 100;
 
 
 function setCell(ligne, colonne, mode) {
@@ -33,7 +34,7 @@ function setGrilleHTML() {
 		for (var colonne = 0, largeur = taille.largeur; colonne < largeur; colonne++) {
 			var celluleHTML = document.createElement('td');
 			celluleHTML.id = ligne * largeur + colonne;
-			celluleHTML.className = (table[ligne][colonne])?'alive':'dead';
+			if(table[ligne][colonne]) celluleHTML.classList.toggle('alive');
 			
 			//Ajoute les différents évènements de sourie permettant d'éditer la grille manuellement
 			celluleHTML.onmouseenter = function(){
@@ -100,7 +101,7 @@ function nouveauCycle() {
 			var nouveauStatut = (somme[ligne][colonne] == 3 || (table[ligne][colonne] && somme[ligne][colonne] == 2));
 			if(table[ligne][colonne] != nouveauStatut) {
 				table[ligne][colonne] = nouveauStatut;
-				document.getElementById(ligne * largeur + colonne).className = (table[ligne][colonne])?'alive':'dead';
+				document.getElementById(ligne * largeur + colonne).classList.toggle('alive');
 			}
 			somme[ligne][colonne] = 0;
 		}
@@ -110,22 +111,27 @@ function nouveauCycle() {
 }
 
 function changerStatu(elem) {
-	elem.className = (elem.className == 'alive')?'dead':'alive';
+	elem.classList.toggle('alive');
 	var i = Math.floor(elem.id / taille.largeur);
 	var j = elem.id % taille.largeur;
 	table[i][j] = !(table[i][j]);
 }
 
-taille.hauteur = 150;
-taille.largeur = 150;
+taille.hauteur = 100;
+taille.largeur = 100;
 var painting = false;
 var afficheTest = document.getElementById("fill");
 
 setGame();
 
-console.log(document.styleSheets[0].cssRules[0]);
-document.styleSheets[0].cssRules[0].style.width = (95 / taille.largeur) + 'vh';
-document.styleSheets[0].cssRules[0].style.height = (95 / taille.hauteur) + 'vh';
+var ratio = (taille.hauteur / taille.largeur) * (document.getElementById('container').clientWidth / document.getElementById('container').clientHeight);
+window.onresize = function(){
+	ratio = (taille.hauteur / taille.largeur) * (document.getElementById('container').clientWidth / document.getElementById('container').clientHeight);
+	document.styleSheets[0].cssRules[0].style.width = (zoom) + '%';
+	document.styleSheets[0].cssRules[0].style.height = (zoom * ratio) + '%';
+}
+document.styleSheets[0].cssRules[0].style.width = (zoom) + '%';
+document.styleSheets[0].cssRules[0].style.height = (zoom * ratio) + '%';
 
 var isAlive = 0;
 var launcher = document.getElementById("launcher");
@@ -157,8 +163,10 @@ document.getElementById("respawn").onclick = function(){
 var zoomPlus = 0;
 document.getElementById("plus").onmousedown = function(){
 	zoomPlus = setInterval(function(){
-		document.styleSheets[0].cssRules[0].style.width = Math.min(++document.getElementById(0).offsetWidth, Math.floor(document.body.offsetWidth / taille.hauteur)) + 'px';
-		document.styleSheets[0].cssRules[0].style.height = Math.min(++document.getElementById(0).offsetHeight, Math.floor(document.body.offsetWidth / taille.hauteur)) + 'px';
+		zoom *= 1.1;
+		if(zoom > (10 * taille.largeur)) zoom = 10 * taille.largeur;
+		document.styleSheets[0].cssRules[0].style.width = (zoom) + '%';
+		document.styleSheets[0].cssRules[0].style.height = (zoom * ratio) + '%';
 	}, 100);
 }
 document.getElementById("plus").onmouseup = function(){
@@ -170,8 +178,10 @@ document.getElementById("plus").onmouseout = function(){
 var zoomMoins = 0;
 document.getElementById("moins").onmousedown = function(){
 	zoomMoins = setInterval(function(){
-		document.styleSheets[0].cssRules[0].style.width = Math.max(--document.getElementById(0).offsetWidth, 1) + 'px';
-		document.styleSheets[0].cssRules[0].style.height = Math.max(--document.getElementById(0).offsetHeight, 1) + 'px';
+		zoom *= 0.9;
+		if(zoom < 100) zoom = 100;
+		document.styleSheets[0].cssRules[0].style.width = (zoom) + '%';
+		document.styleSheets[0].cssRules[0].style.height = (zoom * ratio) + '%';
 	}, 100);
 }
 document.getElementById("moins").onmouseup = function(){
