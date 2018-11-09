@@ -22,11 +22,15 @@ td {
 	position: fixed;
 	top: 2.5vh;
 	right: 2.5vw;
-	width: 70vw;
+	width: 95vh;
 	height: 95vh;
 	overflow: auto;
 }
 
 .alive {
 	background-color: white;
+}
+
+#grille tr td:hover {
+	background-color: red;
 }
