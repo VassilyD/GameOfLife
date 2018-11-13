@@ -12,17 +12,15 @@
 		<button id="fill">Mass cloning</button>
 		<button id="onePass">Baby step</button>
 		<button id="respawn">Respawn</button>
-		<br/><br/>
-		<form id="tailleSelecteur">
-			Hauteur : <input type="number" name="hauteur" step="1">
-			Largeur : <input type="number" name="largeur" step="1">
-			<input type="button" id="tailleSelecteurBouton" value="Valider">
-		</form>
+		<button id="plus">+</button>
+		<button id="moins">-</button>
 	</div>
-	
-	<canvas id="gameOfLifeCanvas" width="500" height="500"></canvas>
+	<div id="container">
+		<table id="grille">
+		</table>
+	</div>
 
 	
-	<script type="text/javascript" src="js/test2.js"></script>
+	<script type="text/javascript" src="js/test.js"></script>
 </body>
 </html>

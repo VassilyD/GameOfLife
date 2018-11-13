@@ -30,9 +30,10 @@ function changerTaille() {
 document.getElementById('tailleSelecteurBouton').onclick = changerTaille;
 
 
-canvasHTML.onresize = function(){
+window.onresize = function(){
 	canvasHTML.width = canvasHTML.clientWidth;
 	canvasHTML.height = canvasHTML.clientHeight;
+	drawCanvasTest();
 }
 
 var tempo = Date.now();
@@ -117,13 +118,6 @@ function nouveauCycle() {
 	tempo = Date.now();
 }
 
-function changerStatu(elem) {
-	elem.classList.toggle('alive');
-	var i = Math.floor(elem.id / taille.largeur);
-	var j = elem.id % taille.largeur;
-	table[i][j] = !(table[i][j]);
-}
-
 taille.hauteur = 100;
 taille.largeur = 100;
 tailleSelecteurHTML.elements[0].value = taille.hauteur;
@@ -132,15 +126,6 @@ var painting = false;
 var afficheTest = document.getElementById("fill");
 
 setGame();
-
-var ratio = (taille.hauteur / taille.largeur) * (document.getElementById('container').clientWidth / document.getElementById('container').clientHeight);
-window.onresize = function(){
-	ratio = (taille.hauteur / taille.largeur) * (document.getElementById('container').clientWidth / document.getElementById('container').clientHeight);
-	document.styleSheets[0].cssRules[0].style.width = (zoom) + '%';
-	document.styleSheets[0].cssRules[0].style.height = (zoom * ratio) + '%';
-}
-document.styleSheets[0].cssRules[0].style.width = (zoom) + '%';
-document.styleSheets[0].cssRules[0].style.height = (zoom * ratio) + '%';
 
 var isAlive = 0;
 var launcher = document.getElementById("launcher");
@@ -163,40 +148,9 @@ document.getElementById("nuke").onclick = function(){
 	}
 	drawCanvasTest();
 }
-document.getElementById("fill").onclick = function(){
-	setGame('vide');
-}
+
 document.getElementById("respawn").onclick = function(){
 	setGame('aleatoire');
 }
-var zoomPlus = 0;
-document.getElementById("plus").onmousedown = function(){
-	zoomPlus = setInterval(function(){
-		zoom *= 1.1;
-		if(zoom > (10 * taille.largeur)) zoom = 10 * taille.largeur;
-		document.styleSheets[0].cssRules[0].style.width = (zoom) + '%';
-		document.styleSheets[0].cssRules[0].style.height = (zoom * ratio) + '%';
-	}, 100);
-}
-document.getElementById("plus").onmouseup = function(){
-	clearInterval(zoomPlus);
-}
-document.getElementById("plus").onmouseout = function(){
-	clearInterval(zoomPlus);
-}
-var zoomMoins = 0;
-document.getElementById("moins").onmousedown = function(){
-	zoomMoins = setInterval(function(){
-		zoom *= 0.9;
-		if(zoom < 100) zoom = 100;
-		document.styleSheets[0].cssRules[0].style.width = (zoom) + '%';
-		document.styleSheets[0].cssRules[0].style.height = (zoom * ratio) + '%';
-	}, 100);
-}
-document.getElementById("moins").onmouseup = function(){
-	clearInterval(zoomMoins);
-}
-document.getElementById("moins").onmouseout = function(){
-	clearInterval(zoomMoins);
-}
+
 document.getElementById("onePass").onclick = nouveauCycle;
