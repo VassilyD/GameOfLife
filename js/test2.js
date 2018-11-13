@@ -35,24 +35,6 @@ canvasHTML.onresize = function(){
 	canvasHTML.height = canvasHTML.clientHeight;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 var tempo = Date.now();
 var somme = []; 
 var table = []; 
@@ -79,38 +61,6 @@ function setCell(ligne, colonne, mode) {
 	}
 }
 
-function setGrilleHTML() {
-	var grilleHTML = document.createElement('table');
-	grilleHTML.id = 'grille';
-	
-	for (var ligne = 0, hauteur = taille.hauteur; ligne < hauteur; ligne++) {
-		var ligneHTML = document.createElement('tr');
-		
-		for (var colonne = 0, largeur = taille.largeur; colonne < largeur; colonne++) {
-			var celluleHTML = document.createElement('td');
-			celluleHTML.id = ligne * largeur + colonne;
-			if(table[ligne][colonne]) celluleHTML.classList.toggle('alive');
-			
-			//Ajoute les différents évènements de sourie permettant d'éditer la grille manuellement
-			celluleHTML.onmouseenter = function(){
-				if(painting) changerStatu(this);
-			}
-			celluleHTML.onmousedown = function(){
-				painting = true;
-				changerStatu(this);
-			}
-			celluleHTML.onmouseup = function(){
-				painting = false;
-			}
-			
-			ligneHTML.appendChild(celluleHTML);
-		}
-		grilleHTML.appendChild(ligneHTML);
-	}
-	var grilleHTMLActuelle = document.getElementById('grille');
-	grilleHTMLActuelle.parentNode.replaceChild(grilleHTML, grilleHTMLActuelle);
-}
-
 function setGame(mode = 'aleatoire') {
 	table = [];
 	somme = [];
@@ -122,7 +72,6 @@ function setGame(mode = 'aleatoire') {
 			somme[ligne][colonne] = 0;
 		}
 	}
-	//setGrilleHTML();
 	canvasHTML.width = canvasHTML.clientWidth;
 	canvasHTML.height = canvasHTML.clientHeight;
 	drawCanvasTest();
@@ -159,7 +108,6 @@ function nouveauCycle() {
 			var nouveauStatut = (somme[ligne][colonne] == 3 || (table[ligne][colonne] && somme[ligne][colonne] == 2));
 			if(table[ligne][colonne] != nouveauStatut) {
 				table[ligne][colonne] = nouveauStatut;
-				//document.getElementById(ligne * largeur + colonne).classList.toggle('alive');
 			}
 			somme[ligne][colonne] = 0;
 		}
@@ -211,9 +159,9 @@ document.getElementById("nuke").onclick = function(){
 	for (var i = 0; i < taille.hauteur; i++) {
 		for (var j = 0; j < taille.largeur; j++) {
 			table[i][j] = false;
-			document.getElementById(i * taille.largeur + j).className = 'dead';
 		}
 	}
+	drawCanvasTest();
 }
 document.getElementById("fill").onclick = function(){
 	setGame('vide');
