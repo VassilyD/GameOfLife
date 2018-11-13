@@ -187,7 +187,7 @@ function painting(e) {
 		canvas.fillStyle = (e.altKey) ? '#0' : '#f';
 		canvas.fillRect(coordMouse[0] * taillePixelX, coordMouse[1] * taillePixelY, taillePixelX, taillePixelY);
 	}
-	if(!isAlive) drawCanvasTest();
+	if(true) drawCanvasTest();
 }
 
 function paintingStart(e) {
