@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Le jeu de la vie</title>
+	<meta charset="utf-8">
+	<link rel="stylesheet" type="text/css" href="css/main.css">
+</head>
+<body>
+	<div id="menu">
+		<button id="launcher">Play</button>
+		<button id="nuke">Nuke</button>
+		<button id="fill">Mass cloning</button>
+		<button id="onePass">Baby step</button>
+		<button id="respawn">Respawn</button>
+		<button id="plus">+</button>
+		<button id="moins">-</button>
+		<form id="tailleSelecteur">
+			Hauteur : <input type="number" name="hauteur" step="1">
+			Largeur : <input type="number" name="largeur" step="1">
+			<input type="button" id="tailleSelecteurBouton" value="Valider">
+		</form>
+		<br/>
+		<canvas id="gameOfLifeCanvas" width="500" height="500"></canvas>
+	</div>
+	<div id="container">
+		<table id="grille">
+		</table>
+	</div>
+
+	
+	<script type="text/javascript" src="js/test2.js"></script>
+</body>
+</html>

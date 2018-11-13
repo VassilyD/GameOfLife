@@ -20,10 +20,10 @@ td {
 
 #container {
 	position: fixed;
-	top: 2.5vh;
-	right: 2.5vw;
-	width: 95vh;
-	height: 95vh;
+	top: 10vh;
+	left: 2.5vw;
+	width: 90vh;
+	height: 90vh;
 	overflow: auto;
 }
 
@@ -33,4 +33,12 @@ td {
 
 #grille tr td:hover {
 	background-color: red;
+}
+
+#gameOfLifeCanvas {
+	position: fixed;
+	top: 2.5vh;
+	right: 2.5vw;
+	width: 90vh;
+	height: 90vh;
 }
