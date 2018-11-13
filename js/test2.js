@@ -6,6 +6,18 @@ var coordMouse = [0, 0];
 var mouseOver = false;
 var vitesseSelecteur = document.getElementById('vitesseSelecteur');
 var vitesse = 10;
+var testPattern = [[false, true, false], [false, false, true], [true, true, true]];
+var pattern = {	marcheur:{	
+					NE:[[true, true, true], [false, false, true], [false, true, false]], 
+					SE:[[false, true, false], [false, false, true], [true, true, true]], 
+					SW:[[false, true, false], [true, false, false], [true, true, true]], 
+					NW:[[true, true, true], [true, false, false], [false, true, false]]
+				},
+				oscillateur:{
+					ligne:[true, true, true],
+					grenouille:[[false, true, true, true], [true, true, true, false]]
+				}
+};
 
 
 
@@ -21,7 +33,17 @@ function drawCanvasTest () {
 		}
 	}
 	canvas.fillStyle = '#ff0000';
-	if(mouseOver) canvas.fillRect(coordMouse[0] * taillePixelX, coordMouse[1] * taillePixelY, taillePixelX, taillePixelY);
+	
+	if(mouseOver) {
+		if(shiftPressed) {
+			for(var ligne = 0; ligne < testPattern.length; ligne++){
+				for(var col = 0; col < testPattern[ligne].length; col++){
+					if(testPattern[ligne][col]) canvas.fillRect((coordMouse[0] + col) * taillePixelX, (coordMouse[1] + ligne) * taillePixelY, taillePixelX, taillePixelY);
+				}
+			}
+		}
+		else canvas.fillRect(coordMouse[0] * taillePixelX, coordMouse[1] * taillePixelY, taillePixelX, taillePixelY);
+	}
 }
 
 function changerTaille() {
@@ -176,6 +198,7 @@ vitesseSelecteur.oninput = function(e){
 
 //Painting options
 var isPainting = false;
+var shiftPressed = false;
 
 function painting(e) {
     var x = e.offsetX;
@@ -186,7 +209,7 @@ function painting(e) {
 	coordMouse[1] = Math.floor(y / taillePixelY);
     var coor = "Coordinates: (" + coordMouse[0] + "," + coordMouse[1] + ")";
     document.getElementById("testtt").innerHTML = coor;
-	if(isPainting) {
+	if(isPainting && !shiftPressed) {
 		table[coordMouse[1]][coordMouse[0]] = (e.altKey) ? false : true;
 		canvas.fillStyle = (e.altKey) ? '#0' : '#f';
 		canvas.fillRect(coordMouse[0] * taillePixelX, coordMouse[1] * taillePixelY, taillePixelX, taillePixelY);
@@ -202,19 +225,31 @@ function paintingStart(e) {
 	var taillePixelY = canvasHTML.clientHeight / taille.hauteur;
 	x = Math.floor(x / taillePixelX);
 	y = Math.floor(y / taillePixelY);
-	table[y][x] = (e.altKey) ? false : true;
-	canvas.fillStyle = (e.altKey) ? '#0' : '#f';
-	canvas.fillRect(x * taillePixelX, y * taillePixelY, taillePixelX, taillePixelY);
+	if(shiftPressed) {
+		for(var ligne = 0; ligne < testPattern.length; ligne++){
+			for(var col = 0; col < testPattern[ligne].length; col++){
+				table[y + ligne][x + col] = testPattern[ligne][col];
+			}
+		}
+		drawCanvasTest();
+	}
+	else {
+		table[y][x] = (e.altKey) ? false : true;
+		canvas.fillStyle = (e.altKey) ? '#0' : '#f';
+		canvas.fillRect(x * taillePixelX, y * taillePixelY, taillePixelX, taillePixelY);
+	}
 }
 
 function paintingStop(e) {
 	isPainting = false;
 }
 
+//Quand la sourie entre sur la grille
 function paintingPre(e) {
 	mouseOver = true;
 }
 
+//Quand la sourie quitte la grille
 function paintingLeave() {
 	mouseOver = false;
 	isPainting = false;
@@ -222,8 +257,23 @@ function paintingLeave() {
 	drawCanvasTest();
 }
 
+//Active certain booléen en fonction des touche enfoncé
+function activeControle(e) {
+	if(e.key == 'Shift') shiftPressed = true;
+	console.log(e.key + ' ' + shiftPressed + ' shit');
+}
+
+//Désctive certain booléen en fonction des touche enfoncé
+function desactiveControle(e) {
+	if(e.key == 'Shift') shiftPressed = false;
+	console.log(e.key + ' ' + shiftPressed + ' fuck');
+}
+
 canvasHTML.setAttribute('onmousemove', "painting(event)");
 canvasHTML.setAttribute('onmousedown', "paintingStart(event)");
 canvasHTML.setAttribute('onmouseup', "paintingStop(event)");
 canvasHTML.setAttribute('onmouseleave', "paintingLeave(event)");
 canvasHTML.setAttribute('onmouseenter', "paintingPre(event)");
+
+document.body.setAttribute('onkeydown', "activeControle(event)");
+document.body.setAttribute('onkeyup', "desactiveControle(event)");
