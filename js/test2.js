@@ -87,7 +87,11 @@ function drawCanvasTest () {
 		if(shiftPressed) {
 			for(var ligne = 0; ligne < patternActuel.length; ligne++){
 				for(var col = 0; col < patternActuel[ligne].length; col++){
-					if(patternActuel[ligne][col]) canvas.fillRect((coordMouse[0] + col) * taillePixelX, (coordMouse[1] + ligne) * taillePixelY, taillePixelX, taillePixelY);
+					var xRel = coordMouse[0] + col;
+					xRel = (xRel >= taille.largeur) ? (xRel - taille.largeur) : (xRel < 0) ? xRel + taille.largeur : xRel;
+					var yRel = coordMouse[1] + ligne;
+					yRel = (yRel >= taille.hauteur) ? (yRel - taille.hauteur) : (yRel < 0) ? yRel + taille.hauteur : yRel;
+					if(patternActuel[ligne][col]) canvas.fillRect(xRel * taillePixelX, yRel * taillePixelY, taillePixelX, taillePixelY);
 				}
 			}
 		}
@@ -344,7 +348,11 @@ function paintingStart(e) {
 	if(shiftPressed) {
 		for(var ligne = 0; ligne < patternActuel.length; ligne++){
 			for(var col = 0; col < patternActuel[ligne].length; col++){
-				table[y + ligne][x + col] = patternActuel[ligne][col];
+				var xRel = x + col;
+				xRel = (xRel >= taille.largeur) ? (xRel - taille.largeur) : (xRel < 0) ? xRel + taille.largeur : xRel;
+				var yRel = y + ligne;
+				yRel = (yRel >= taille.hauteur) ? (yRel - taille.hauteur) : (yRel < 0) ? yRel + taille.hauteur : yRel;
+				table[yRel][xRel] = patternActuel[ligne][col];
 			}
 		}
 		drawCanvasTest();
