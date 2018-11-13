@@ -1,4 +1,5 @@
 var canvasHTML = document.getElementById('gameOfLifeCanvas');
+var selectPatternHTML = document.getElementById('patternSelecteur');
 var canvas = canvasHTML.getContext('2d');
 var tailleEcran = [window.innerWidth, window.innerHeight];
 var tailleSelecteurHTML = document.getElementById('tailleSelecteur');
@@ -7,17 +8,62 @@ var mouseOver = false;
 var vitesseSelecteur = document.getElementById('vitesseSelecteur');
 var vitesse = 10;
 var testPattern = [[false, true, false], [false, false, true], [true, true, true]];
-var pattern = {	marcheur:{	
+var patternList = {	marcheur:{	
 					NE:[[true, true, true], [false, false, true], [false, true, false]], 
 					SE:[[false, true, false], [false, false, true], [true, true, true]], 
 					SW:[[false, true, false], [true, false, false], [true, true, true]], 
 					NW:[[true, true, true], [true, false, false], [false, true, false]]
 				},
 				oscillateur:{
-					ligne:[true, true, true],
+					ligne:[[true, true, true]],
 					grenouille:[[false, true, true, true], [true, true, true, false]]
+				},
+				canon:{
+					gosperGliderGunSE:[
+						[false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false],
+						[false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, true, false, false, false, false, false, false, false, false, false, false, false],
+						[false, false, false, false, false, false, false, false, false, false, false, false, true, true, false, false, false, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, true, true],
+						[false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, true, false, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, true, true],
+						[true, true, false, false, false, false, false, false, false, false, true, false, false, false, false, false, true, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false],
+						[true, true, false, false, false, false, false, false, false, false, true, false, false, false, true, false, true, true, false, false, false, false, true, false, true, false, false, false, false, false, false, false, false, false, false, false],
+						[false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, true, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false],
+						[false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false],
+						[false, false, false, false, false, false, false, false, false, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]]		
+				},
+				generateur:{
+					zeroNW:[
+						[false, false, false, false, false, false, true, false],
+						[false, false, false, false, true, false, true, true],
+						[false, false, false, false, true, false, true, false],
+						[false, false, false, false, true, false, false, false],
+						[false, false, true, false, false, false, false, false],
+						[true, false, true, false, false, false, false, false],],
+					unNW:[
+						[true, true, true, false, true],
+						[true, false, false, false, false],
+						[false, false, false, true, true],
+						[false, true, true, false, true],
+						[true, false, true, false, true]],
+					deuxNSE:[[true, true, true, true, true, true, true, true, false, true, true, true, true, true, false, false, false, true, true, true, false, false, false, false, false, false, true, true, true, true, true, true, true, false, true, true, true, true, true]]
+				},
+				block:{
+					carre:[[true, true], [true, true]],
+					tube:[
+						[false, true, false], 
+						[true, false, true], 
+						[false, true, false]],
+					pecheur:[
+						[true, true, false, false], 
+						[true, false, true, false], 
+						[false, false, true, false], 
+						[false, false, true, true]],
+					python:[
+						[false, false, false, true, true], 
+						[true, false, true, false, true], 
+						[true, true, false, false, false]]
 				}
 };
+var patternActuel = testPattern.slice();
 
 
 
@@ -36,9 +82,9 @@ function drawCanvasTest () {
 	
 	if(mouseOver) {
 		if(shiftPressed) {
-			for(var ligne = 0; ligne < testPattern.length; ligne++){
-				for(var col = 0; col < testPattern[ligne].length; col++){
-					if(testPattern[ligne][col]) canvas.fillRect((coordMouse[0] + col) * taillePixelX, (coordMouse[1] + ligne) * taillePixelY, taillePixelX, taillePixelY);
+			for(var ligne = 0; ligne < patternActuel.length; ligne++){
+				for(var col = 0; col < patternActuel[ligne].length; col++){
+					if(patternActuel[ligne][col]) canvas.fillRect((coordMouse[0] + col) * taillePixelX, (coordMouse[1] + ligne) * taillePixelY, taillePixelX, taillePixelY);
 				}
 			}
 		}
@@ -196,9 +242,55 @@ vitesseSelecteur.oninput = function(e){
 	}
 }
 
-//Painting options
+/****************  Painting options  ***********************/
 var isPainting = false;
 var shiftPressed = false;
+
+//Génération du selecteur
+function selectionPatternFinal(e){
+	var selectLVL1 = document.getElementById('patternsLVL1');
+	var selectLVL2 = document.getElementById('patternsLVL2');
+	patternActuel = patternList[selectLVL1.value][selectLVL2.value].slice();
+}
+
+function selectionSousPattern(e) {
+	if(choixTmp = document.getElementById('patternsLVL2')) selectPatternHTML.removeChild(choixTmp);
+	
+	var selectLVL1 = document.getElementById('patternsLVL1');
+	var selecteurPatternTmp = document.createElement('select');
+	selecteurPatternTmp.name = 'patternsLVL2';
+	selecteurPatternTmp.id = 'patternsLVL2';
+	selecteurPatternTmp.setAttribute('oninput', "selectionPatternFinal(event)");
+	var choixTmp = document.createElement('option');
+	choixTmp.value = '';
+	choixTmp.innerHTML = 'Selectionner patron';
+	selecteurPatternTmp.appendChild(choixTmp);
+	for(pattern in patternList[selectLVL1.value]) {
+		var choixTmp = document.createElement('option');
+		choixTmp.value = pattern;
+		choixTmp.innerHTML = pattern;
+		selecteurPatternTmp.appendChild(choixTmp);
+	}
+	selectPatternHTML.appendChild(selecteurPatternTmp);
+}
+
+var selecteurPatternTmp = document.createElement('select');
+selecteurPatternTmp.name = 'patternsLVL1';
+selecteurPatternTmp.id = 'patternsLVL1';
+selecteurPatternTmp.setAttribute('oninput', "selectionSousPattern(event)");
+var choixTmp = document.createElement('option');
+choixTmp.value = '';
+choixTmp.innerHTML = 'Selectionner banque';
+selecteurPatternTmp.appendChild(choixTmp);
+for(pattern in patternList) {
+	var choixTmp = document.createElement('option');
+	choixTmp.value = pattern;
+	choixTmp.innerHTML = pattern;
+	selecteurPatternTmp.appendChild(choixTmp);
+}
+selectPatternHTML.appendChild(selecteurPatternTmp);
+
+
 
 function painting(e) {
     var x = e.offsetX;
@@ -226,9 +318,9 @@ function paintingStart(e) {
 	x = Math.floor(x / taillePixelX);
 	y = Math.floor(y / taillePixelY);
 	if(shiftPressed) {
-		for(var ligne = 0; ligne < testPattern.length; ligne++){
-			for(var col = 0; col < testPattern[ligne].length; col++){
-				table[y + ligne][x + col] = testPattern[ligne][col];
+		for(var ligne = 0; ligne < patternActuel.length; ligne++){
+			for(var col = 0; col < patternActuel[ligne].length; col++){
+				table[y + ligne][x + col] = patternActuel[ligne][col];
 			}
 		}
 		drawCanvasTest();
@@ -260,13 +352,11 @@ function paintingLeave() {
 //Active certain booléen en fonction des touche enfoncé
 function activeControle(e) {
 	if(e.key == 'Shift') shiftPressed = true;
-	console.log(e.key + ' ' + shiftPressed + ' shit');
 }
 
 //Désctive certain booléen en fonction des touche enfoncé
 function desactiveControle(e) {
 	if(e.key == 'Shift') shiftPressed = false;
-	console.log(e.key + ' ' + shiftPressed + ' fuck');
 }
 
 canvasHTML.setAttribute('onmousemove', "painting(event)");
