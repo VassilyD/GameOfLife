@@ -42,7 +42,7 @@ window.onresize = function(){
 	drawCanvasTest();
 }
 
-var tempo = Date.now();
+var tempo = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 var somme = []; 
 var table = []; 
 var taille = {hauteur:0, largeur:0};
@@ -120,8 +120,12 @@ function nouveauCycle() {
 		}
 	}
 	drawCanvasTest();
-	afficheTest.innerHTML = (Date.now() - tempo);
-	tempo = Date.now();
+	var tempsTemp = 0;
+	for(var i = 1; i < 10; i++) tempsTemp += (tempo[i] - tempo[i-1]);
+	tempsTemp /= 10;
+	afficheTest.innerHTML = (Math.floor(100000 / tempsTemp) / 100) + ' FPS';;
+	tempo.push(Date.now());
+	tempo.shift();
 }
 
 taille.hauteur = 100;
@@ -162,8 +166,8 @@ document.getElementById("respawn").onclick = function(){
 document.getElementById("onePass").onclick = nouveauCycle;
 
 vitesseSelecteur.oninput = function(e){
-	vitesse = vitesseSelecteur.value*1;
-	document.getElementById('vitesseAffiche').innerHTML = vitesse;
+	vitesse = (500 - vitesseSelecteur.value*1);
+	document.getElementById('vitesseAffiche').innerHTML = (Math.floor(100000 / vitesse) / 100) + ' FPS';
 	if(isAlive != 0) {
 		clearInterval(isAlive);
 		isAlive = setInterval(nouveauCycle, vitesse);
@@ -187,7 +191,7 @@ function painting(e) {
 		canvas.fillStyle = (e.altKey) ? '#0' : '#f';
 		canvas.fillRect(coordMouse[0] * taillePixelX, coordMouse[1] * taillePixelY, taillePixelX, taillePixelY);
 	}
-	if(true) drawCanvasTest();
+	drawCanvasTest();
 }
 
 function paintingStart(e) {
@@ -215,6 +219,7 @@ function paintingLeave() {
 	mouseOver = false;
 	isPainting = false;
     document.getElementById("testtt").innerHTML = '';
+	drawCanvasTest();
 }
 
 canvasHTML.setAttribute('onmousemove', "painting(event)");
