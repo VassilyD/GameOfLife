@@ -4,6 +4,8 @@ var tailleEcran = [window.innerWidth, window.innerHeight];
 var tailleSelecteurHTML = document.getElementById('tailleSelecteur');
 var coordMouse = [0, 0];
 var mouseOver = false;
+var vitesseSelecteur = document.getElementById('vitesseSelecteur');
+var vitesse = 10;
 
 
 
@@ -140,7 +142,7 @@ launcher.onclick = function(){
 		afficheTest.innerHTML = '';
 	}
 	else {
-		isAlive = setInterval(nouveauCycle, 10);
+		isAlive = setInterval(nouveauCycle, vitesse);
 		launcher.innerHTML = 'Pause';
 	}
 }
@@ -159,6 +161,14 @@ document.getElementById("respawn").onclick = function(){
 
 document.getElementById("onePass").onclick = nouveauCycle;
 
+vitesseSelecteur.oninput = function(e){
+	vitesse = vitesseSelecteur.value*1;
+	document.getElementById('vitesseAffiche').innerHTML = vitesse;
+	if(isAlive != 0) {
+		clearInterval(isAlive);
+		isAlive = setInterval(nouveauCycle, vitesse);
+	}
+}
 
 //Painting options
 var isPainting = false;
@@ -173,8 +183,8 @@ function painting(e) {
     var coor = "Coordinates: (" + coordMouse[0] + "," + coordMouse[1] + ")";
     document.getElementById("testtt").innerHTML = coor;
 	if(isPainting) {
-		table[coordMouse[1]][coordMouse[0]] = true;
-		canvas.fillStyle = '#f';
+		table[coordMouse[1]][coordMouse[0]] = (e.altKey) ? false : true;
+		canvas.fillStyle = (e.altKey) ? '#0' : '#f';
 		canvas.fillRect(coordMouse[0] * taillePixelX, coordMouse[1] * taillePixelY, taillePixelX, taillePixelY);
 	}
 	if(!isAlive) drawCanvasTest();
@@ -188,8 +198,8 @@ function paintingStart(e) {
 	var taillePixelY = canvasHTML.clientHeight / taille.hauteur;
 	x = Math.floor(x / taillePixelX);
 	y = Math.floor(y / taillePixelY);
-	table[y][x] = true;
-	canvas.fillStyle = '#f';
+	table[y][x] = (e.altKey) ? false : true;
+	canvas.fillStyle = (e.altKey) ? '#0' : '#f';
 	canvas.fillRect(x * taillePixelX, y * taillePixelY, taillePixelX, taillePixelY);
 }
 
