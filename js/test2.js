@@ -2,6 +2,8 @@ var canvasHTML = document.getElementById('gameOfLifeCanvas');
 var canvas = canvasHTML.getContext('2d');
 var tailleEcran = [window.innerWidth, window.innerHeight];
 var tailleSelecteurHTML = document.getElementById('tailleSelecteur');
+var coordMouse = [0, 0];
+var mouseOver = false;
 
 
 
@@ -16,6 +18,8 @@ function drawCanvasTest () {
 			if(table[ligne][colonne]) canvas.fillRect(colonne * taillePixelX, ligne * taillePixelY, taillePixelX, taillePixelY);
 		}
 	}
+	canvas.fillStyle = '#ff0000';
+	if(mouseOver) canvas.fillRect(coordMouse[0] * taillePixelX, coordMouse[1] * taillePixelY, taillePixelX, taillePixelY);
 }
 
 function changerTaille() {
@@ -122,7 +126,6 @@ taille.hauteur = 100;
 taille.largeur = 100;
 tailleSelecteurHTML.elements[0].value = taille.hauteur;
 tailleSelecteurHTML.elements[1].value = taille.largeur
-var painting = false;
 var afficheTest = document.getElementById("fill");
 
 setGame();
@@ -134,6 +137,7 @@ launcher.onclick = function(){
 		clearInterval(isAlive);
 		isAlive = 0;
 		launcher.innerHTML = 'Play';
+		afficheTest.innerHTML = '';
 	}
 	else {
 		isAlive = setInterval(nouveauCycle, 10);
@@ -154,3 +158,57 @@ document.getElementById("respawn").onclick = function(){
 }
 
 document.getElementById("onePass").onclick = nouveauCycle;
+
+
+//Painting options
+var isPainting = false;
+
+function painting(e) {
+    var x = e.offsetX;
+    var y = e.offsetY;
+	var taillePixelX = canvasHTML.clientWidth / taille.largeur;
+	var taillePixelY = canvasHTML.clientHeight / taille.hauteur;
+	coordMouse[0] = Math.floor(x / taillePixelX);
+	coordMouse[1] = Math.floor(y / taillePixelY);
+    var coor = "Coordinates: (" + coordMouse[0] + "," + coordMouse[1] + ")";
+    document.getElementById("testtt").innerHTML = coor;
+	if(isPainting) {
+		table[coordMouse[1]][coordMouse[0]] = true;
+		canvas.fillStyle = '#f';
+		canvas.fillRect(coordMouse[0] * taillePixelX, coordMouse[1] * taillePixelY, taillePixelX, taillePixelY);
+	}
+	if(!isAlive) drawCanvasTest();
+}
+
+function paintingStart(e) {
+	isPainting = true;
+	var x = e.offsetX;
+    var y = e.offsetY;
+	var taillePixelX = canvasHTML.clientWidth / taille.largeur;
+	var taillePixelY = canvasHTML.clientHeight / taille.hauteur;
+	x = Math.floor(x / taillePixelX);
+	y = Math.floor(y / taillePixelY);
+	table[y][x] = true;
+	canvas.fillStyle = '#f';
+	canvas.fillRect(x * taillePixelX, y * taillePixelY, taillePixelX, taillePixelY);
+}
+
+function paintingStop(e) {
+	isPainting = false;
+}
+
+function paintingPre(e) {
+	mouseOver = true;
+}
+
+function paintingLeave() {
+	mouseOver = false;
+	isPainting = false;
+    document.getElementById("testtt").innerHTML = '';
+}
+
+canvasHTML.setAttribute('onmousemove', "painting(event)");
+canvasHTML.setAttribute('onmousedown', "paintingStart(event)");
+canvasHTML.setAttribute('onmouseup', "paintingStop(event)");
+canvasHTML.setAttribute('onmouseleave', "paintingLeave(event)");
+canvasHTML.setAttribute('onmouseenter', "paintingPre(event)");
