@@ -7,6 +7,9 @@ var coordMouse = [0, 0];
 var mouseOver = false;
 var vitesseSelecteur = document.getElementById('vitesseSelecteur');
 var vitesse = 10;
+var nbGeneration = 0;
+var nbVivant = 0;
+var infoStatsHTML = document.getElementById('infoStats');
 var testPattern = [[false, true, false], [false, false, true], [true, true, true]];
 var patternList = {	marcheur:{	
 					NE:[[true, true, true], [false, false, true], [false, true, false]], 
@@ -121,6 +124,7 @@ function setCell(ligne, colonne, mode) {
 	switch (mode) {
 		case 'aleatoire':
 			table[ligne][colonne] = (Math.round(Math.random()) == 0);
+			if(table[ligne][colonne]) nbVivant++;
 			break;
 	
 		case 'vide':
@@ -170,10 +174,15 @@ function ajouterVoisin(ligne, colonne) {
 }
 
 function nouveauCycle() {
+	var nbVivantPasse = nbVivant;
+	nbVivant = 0;
 	for (var ligne = 0, hauteur = taille.hauteur; ligne < hauteur; ligne++) {
 		for (var colonne = 0, largeur = taille.largeur; colonne < largeur; colonne++) {
 			//si la cellule est vivante, ajouter +1 à la somme des voisins de chaque cellule voisine
-			if(table[ligne][colonne]) ajouterVoisin(ligne, colonne);
+			if(table[ligne][colonne]) {
+				ajouterVoisin(ligne, colonne);
+				nbVivant++;
+			}
 		}
 	}
 	
@@ -194,6 +203,8 @@ function nouveauCycle() {
 	afficheTest.innerHTML = (Math.floor(100000 / tempsTemp) / 100) + ' FPS';;
 	tempo.push(Date.now());
 	tempo.shift();
+	nbGeneration++;
+	infoStatsHTML.innerHTML = 'Génération ' + nbGeneration + ' : ' + nbVivant + ' Cellule vivante (' + ((nbVivant >= nbVivantPasse) ? '+' : '') + (nbVivant - nbVivantPasse) + ')';
 }
 
 taille.hauteur = 100;
@@ -203,6 +214,7 @@ tailleSelecteurHTML.elements[1].value = taille.largeur
 var afficheTest = document.getElementById("fill");
 
 setGame();
+infoStatsHTML.innerHTML = 'Génération 0 : ' + nbVivant + ' Cellule vivante (+0)';
 
 var isAlive = 0;
 var launcher = document.getElementById("launcher");
@@ -224,11 +236,23 @@ document.getElementById("nuke").onclick = function(){
 			table[i][j] = false;
 		}
 	}
+	if(isAlive != 0) {
+		clearInterval(isAlive);
+		isAlive = 0;
+		launcher.innerHTML = 'Play';
+		afficheTest.innerHTML = '';
+	}
+	nbGeneration = 0;
+	nbVivant = 0;
+	infoStatsHTML.innerHTML = 'Génération 0 : 0 Cellule vivante (+0)';
 	drawCanvasTest();
 }
 
 document.getElementById("respawn").onclick = function(){
+	nbGeneration = 0;
+	nbVivant = 0;
 	setGame('aleatoire');
+	infoStatsHTML.innerHTML = 'Génération 0 : ' + nbVivant + ' Cellule vivante (+0)';
 }
 
 document.getElementById("onePass").onclick = nouveauCycle;
