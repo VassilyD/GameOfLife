@@ -3,7 +3,7 @@ var selectPatternHTML = document.getElementById('patternSelecteur');
 var canvas = canvasHTML.getContext('2d');
 var tailleEcran = [window.innerWidth, window.innerHeight];
 var tailleSelecteurHTML = document.getElementById('tailleSelecteur');
-var coordMouse = [0, 0];
+var coordMouse = {x:0, y:0};
 var mouseOver = false;
 var vitesseSelecteur = document.getElementById('vitesseSelecteur');
 var vitesse = 10;
@@ -11,6 +11,13 @@ var nbGeneration = 0;
 var nbVivant = 0;
 var infoStatsHTML = document.getElementById('infoStats');
 var dessinerCanvasInterval = 0;
+var tempo = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+var somme = []; 
+var table = []; 
+var taille = {hauteur:0, largeur:0};
+var taillePixel = {x:1, y:1};
+var tailleApparente = {hauteur:0, largeur:0};
+var zoom = {depart:{x:0, y:0}, fin:{x:0, y:0}};
 var testPattern = [[false, true, false], [false, false, true], [true, true, true]];
 var patternList = {	marcheur:{	
 					NE:[[true, true, true], [false, false, true], [false, true, false]], 
@@ -72,9 +79,7 @@ var patternActuel = testPattern.slice();
 /************ Gestion de l'affichage du canvas ******************/
 
 // Affiche la grille de cellule
-function dessinerJeu(){
-	var taillePixelX = canvasHTML.clientWidth / taille.largeur;
-	var taillePixelY = canvasHTML.clientHeight / taille.hauteur;
+function dessinerJeu(taillePixel){
 	
 	//création d'un fond noir
 	canvas.fillStyle = '#000000';
@@ -82,44 +87,60 @@ function dessinerJeu(){
 	
 	//création des cellules vivantes
 	canvas.fillStyle = '#ffffff';
-	for(var ligne = 0, hauteur = taille.hauteur; ligne < hauteur; ligne++) {
-		for(var colonne = 0, largeur = taille.largeur; colonne < largeur; colonne++) {
-			if(table[ligne][colonne]) canvas.fillRect(colonne * taillePixelX, ligne * taillePixelY, taillePixelX, taillePixelY);
+	for(var ligne = zoom.depart.y, hauteur = zoom.fin.y; ligne <= hauteur; ligne++) {
+		for(var colonne = zoom.depart.x, largeur = zoom.fin.x; colonne <= largeur; colonne++) {
+			if(table[ligne][colonne]) canvas.fillRect((colonne - zoom.depart.x) * taillePixel.x, (ligne - zoom.depart.y) * taillePixel.y, taillePixel.x, taillePixel.y);
 		}
 	}
 }
 
 // Affichage de l'outils selectionné
-function dessinerOutil(){
-	var taillePixelX = canvasHTML.clientWidth / taille.largeur;
-	var taillePixelY = canvasHTML.clientHeight / taille.hauteur;
-	
+function dessinerOutil(taillePixel){
 	canvas.fillStyle = '#ff0000';
 	
 	if(shiftPressed) {
 		for(var ligne = 0; ligne < patternActuel.length; ligne++){
 			for(var col = 0; col < patternActuel[ligne].length; col++){
 				//xRel et yRel permettent de connecter les bord entre eux
-				var xRel = coordMouse[0] + col;
+				var xRel = coordMouse.x + col;
 				xRel = (xRel >= taille.largeur) ? (xRel - taille.largeur) : (xRel < 0) ? xRel + taille.largeur : xRel;
-				var yRel = coordMouse[1] + ligne;
+				var yRel = coordMouse.y + ligne;
 				yRel = (yRel >= taille.hauteur) ? (yRel - taille.hauteur) : (yRel < 0) ? yRel + taille.hauteur : yRel;
-				if(patternActuel[ligne][col]) canvas.fillRect(xRel * taillePixelX, yRel * taillePixelY, taillePixelX, taillePixelY);
+				if(patternActuel[ligne][col]) canvas.fillRect((xRel - zoom.depart.x) * taillePixel.x, (yRel - zoom.depart.y) * taillePixel.y, taillePixel.x, taillePixel.y);
 			}
 		}
 	}
-	else canvas.fillRect(coordMouse[0] * taillePixelX, coordMouse[1] * taillePixelY, taillePixelX, taillePixelY);
+	else canvas.fillRect((coordMouse.x - zoom.depart.x) * taillePixel.x, (coordMouse.y - zoom.depart.y) * taillePixel.y, taillePixel.x, taillePixel.y);
 }
 
 function dessinerCanvas() {
-	dessinerJeu();
+	taillePixel = {	x:(canvasHTML.clientWidth / tailleApparente.largeur), 
+						y:(canvasHTML.clientHeight / tailleApparente.hauteur)}
+	
+	dessinerJeu(taillePixel);
 	
 	if(mouseOver) {
-		dessinerOutil();
+		dessinerOutil(taillePixel);
 	}
 }
 
+window.onresize = function(){
+	canvasHTML.width = canvasHTML.clientWidth;
+	canvasHTML.height = canvasHTML.clientHeight;
+	dessinerCanvas();
+}
+
 /************ Fin de l'affichage du canvas ******************/
+
+function positionSourieCanvas(e){
+    var x = e.offsetX;
+    var y = e.offsetY;
+	tailleApparente = {hauteur:(zoom.fin.y - zoom.depart.y), largeur:(zoom.fin.x - zoom.depart.x)};
+	taillePixel.x = canvasHTML.clientWidth / tailleApparente.largeur;
+	taillePixel.y = canvasHTML.clientHeight / tailleApparente.hauteur;
+	coordMouse.x = zoom.depart.x + Math.floor(x / taillePixel.x);
+	coordMouse.y = zoom.depart.y + Math.floor(y / taillePixel.y);
+}
 
 function changerTaille() {
 	taille.hauteur = tailleSelecteurHTML.elements[0].value * 1;
@@ -129,21 +150,64 @@ function changerTaille() {
 	setGame();
 }
 
-
-document.getElementById('tailleSelecteurBouton').onclick = changerTaille;
-
-
-window.onresize = function(){
-	canvasHTML.width = canvasHTML.clientWidth;
-	canvasHTML.height = canvasHTML.clientHeight;
+function zooming(e) {
+	var delta = Math.round(tailleApparente.largeur / 50);
+	positionSourieCanvas(e);
+	var coordMouseRel = {	x:(coordMouse.x - zoom.depart.x),
+							y:(coordMouse.y - zoom.depart.y)}
+	if(e.deltaY > 0) {
+		if(zoom.depart.x <= 0) {
+			zoom.fin.x = Math.min(zoom.fin.x + delta*2, taille.largeur - 1);
+		}
+		else if(zoom.fin.x >= taille.largeur - 1) {
+			zoom.depart.x = Math.max(zoom.depart.x - delta*2, 0);
+		}
+		else {
+			zoom.fin.x = Math.min(zoom.fin.x + delta, taille.largeur - 1);
+			zoom.depart.x = Math.max(zoom.depart.x - delta, 0);
+		}
+		
+		if(zoom.depart.y <= 0) {
+			zoom.fin.y = Math.min(zoom.fin.y + delta*2, taille.hauteur - 1);
+		}
+		else if(zoom.fin.y >= taille.hauteur - 1) {
+			zoom.depart.y = Math.max(zoom.depart.y - delta*2, 0);
+		}
+		else {
+			zoom.fin.y = Math.min(zoom.fin.y + delta, taille.hauteur - 1);
+			zoom.depart.y = Math.max(zoom.depart.y - delta, 0);
+		}
+	}
+	else if(e.deltaY < 0) {
+		if(coordMouseRel.x < tailleApparente.largeur / 2) {
+			zoom.fin.x = Math.max(Math.max((zoom.fin.x - delta*2), (zoom.depart.x + 10)), 9);
+		}
+		else if(coordMouseRel.x > tailleApparente.largeur / 2) {
+			zoom.depart.x = Math.min(Math.min((zoom.depart.x + delta*2), (zoom.fin.x - 10)), taille.largeur - 10);
+		}
+		else {
+			zoom.fin.x = Math.max(Math.max((zoom.fin.x - delta), (zoom.depart.x + 10)), 9);
+			zoom.depart.x = Math.min(Math.min((zoom.depart.x + delta), (zoom.fin.x - 10)), taille.largeur - 10);
+		}
+		
+		if(coordMouseRel.y < tailleApparente.hauteur / 2) {
+			zoom.fin.y = Math.max(Math.max((zoom.fin.y - delta*2), (zoom.depart.y + 10)), 9);
+		}
+		else if(coordMouseRel.y > tailleApparente.hauteur / 2) {
+			zoom.depart.y = Math.min(Math.min((zoom.depart.y + delta*2), (zoom.fin.y - 10)), taille.hauteur - 10);
+		}
+		else {
+			zoom.fin.y = Math.max(Math.max((zoom.fin.y - delta), (zoom.depart.y + 10)), 9);
+			zoom.depart.y = Math.min(Math.min((zoom.depart.y + delta), (zoom.fin.y - 10)), taille.hauteur - 10);
+		}
+	}
+	//console.log(e.deltaY);
+	tailleApparente = {hauteur:(zoom.fin.y - zoom.depart.y), largeur:(zoom.fin.x - zoom.depart.x)};
+	taillePixel.x = canvasHTML.clientWidth / tailleApparente.largeur;
+	taillePixel.y = canvasHTML.clientHeight / tailleApparente.hauteur;
 }
 
-var tempo = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-var somme = []; 
-var table = []; 
-var taille = {hauteur:0, largeur:0};
-var zoom = 100;
-
+document.getElementById('tailleSelecteurBouton').onclick = changerTaille;
 
 function setCell(ligne, colonne, mode) {
 	switch (mode) {
@@ -230,15 +294,23 @@ function nouveauCycle() {
 	infoStatsHTML.innerHTML = 'Génération ' + nbGeneration + ' : ' + nbVivant + ' Cellule vivante (' + ((nbVivant >= nbVivantPasse) ? '+' : '') + (nbVivant - nbVivantPasse) + ')';
 }
 
+/************* Initialisation *************/
+
 taille.hauteur = 100;
 taille.largeur = 100;
 tailleSelecteurHTML.elements[0].value = taille.hauteur;
-tailleSelecteurHTML.elements[1].value = taille.largeur
-var afficheTest = document.getElementById("fill");
+tailleSelecteurHTML.elements[1].value = taille.largeur;
+zoom.depart = {x:0, y:0};
+zoom.fin = {x:taille.largeur - 1, y:taille.hauteur - 1};
+tailleApparente = {hauteur:(zoom.fin.y - zoom.depart.y), largeur:(zoom.fin.x - zoom.depart.x)};
 
 setGame();
 dessinerCanvasInterval = setInterval(dessinerCanvas, 16.67);
 infoStatsHTML.innerHTML = 'Génération 0 : ' + nbVivant + ' Cellule vivante (+0)';
+
+/************* Fin Initialisation *********/
+
+var afficheTest = document.getElementById("fill");
 
 var isAlive = 0;
 var launcher = document.getElementById("launcher");
@@ -360,44 +432,40 @@ selectPatternHTML.appendChild(selecteurPatternTmp);
 
 
 function painting(e) {
-    var x = e.offsetX;
-    var y = e.offsetY;
-	var taillePixelX = canvasHTML.clientWidth / taille.largeur;
-	var taillePixelY = canvasHTML.clientHeight / taille.hauteur;
-	coordMouse[0] = Math.floor(x / taillePixelX);
-	coordMouse[1] = Math.floor(y / taillePixelY);
-    var coor = "Coordinates: (" + coordMouse[0] + "," + coordMouse[1] + ")";
+	positionSourieCanvas(e);
+    var coor = "Coordinates: (" + coordMouse.x + "," + coordMouse.y + ")";
     document.getElementById("testtt").innerHTML = coor;
 	if(isPainting && !shiftPressed) {
-		table[coordMouse[1]][coordMouse[0]] = (e.altKey) ? false : true;
+		table[coordMouse.y][coordMouse.x] = (e.altKey) ? false : true;
 		canvas.fillStyle = (e.altKey) ? '#0' : '#f';
-		canvas.fillRect(coordMouse[0] * taillePixelX, coordMouse[1] * taillePixelY, taillePixelX, taillePixelY);
+		canvas.fillRect(coordMouse.x * taillePixel.x, coordMouse.y * taillePixel.y, taillePixel.x, taillePixel.y);
 	}
 }
 
 function paintingStart(e) {
 	isPainting = true;
-	var x = e.offsetX;
+	positionSourieCanvas(e);
+	/*var x = e.offsetX;
     var y = e.offsetY;
 	var taillePixelX = canvasHTML.clientWidth / taille.largeur;
 	var taillePixelY = canvasHTML.clientHeight / taille.hauteur;
 	x = Math.floor(x / taillePixelX);
-	y = Math.floor(y / taillePixelY);
+	y = Math.floor(y / taillePixelY);*/
 	if(shiftPressed) {
 		for(var ligne = 0; ligne < patternActuel.length; ligne++){
 			for(var col = 0; col < patternActuel[ligne].length; col++){
-				var xRel = x + col;
+				var xRel = coordMouse.x + col;
 				xRel = (xRel >= taille.largeur) ? (xRel - taille.largeur) : (xRel < 0) ? xRel + taille.largeur : xRel;
-				var yRel = y + ligne;
+				var yRel = coordMouse.y + ligne;
 				yRel = (yRel >= taille.hauteur) ? (yRel - taille.hauteur) : (yRel < 0) ? yRel + taille.hauteur : yRel;
 				table[yRel][xRel] = patternActuel[ligne][col];
 			}
 		}
 	}
 	else {
-		table[y][x] = (e.altKey) ? false : true;
+		table[coordMouse.y][coordMouse.x] = (e.altKey) ? false : true;
 		canvas.fillStyle = (e.altKey) ? '#0' : '#f';
-		canvas.fillRect(x * taillePixelX, y * taillePixelY, taillePixelX, taillePixelY);
+		canvas.fillRect(coordMouse.x * taillePixel.x, coordMouse.y * taillePixel.y, taillePixel.x, taillePixel.y);
 	}
 }
 
@@ -432,6 +500,7 @@ canvasHTML.setAttribute('onmousedown', "paintingStart(event)");
 canvasHTML.setAttribute('onmouseup', "paintingStop(event)");
 canvasHTML.setAttribute('onmouseleave', "paintingLeave(event)");
 canvasHTML.setAttribute('onmouseenter', "paintingPre(event)");
+canvasHTML.setAttribute('onwheel', "zooming(event)");
 
 document.body.setAttribute('onkeydown', "activeControle(event)");
 document.body.setAttribute('onkeyup', "desactiveControle(event)");
