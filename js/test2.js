@@ -10,6 +10,7 @@ var vitesse = 10;
 var nbGeneration = 0;
 var nbVivant = 0;
 var infoStatsHTML = document.getElementById('infoStats');
+var dessinerCanvasInterval = 0;
 var testPattern = [[false, true, false], [false, false, true], [true, true, true]];
 var patternList = {	marcheur:{	
 					NE:[[true, true, true], [false, false, true], [false, true, false]], 
@@ -68,36 +69,57 @@ var patternList = {	marcheur:{
 };
 var patternActuel = testPattern.slice();
 
+/************ Gestion de l'affichage du canvas ******************/
 
-
-function drawCanvasTest () {
+// Affiche la grille de cellule
+function dessinerJeu(){
 	var taillePixelX = canvasHTML.clientWidth / taille.largeur;
 	var taillePixelY = canvasHTML.clientHeight / taille.hauteur;
+	
+	//création d'un fond noir
 	canvas.fillStyle = '#000000';
 	canvas.fillRect(0,0,canvasHTML.clientWidth,canvasHTML.clientHeight);
+	
+	//création des cellules vivantes
 	canvas.fillStyle = '#ffffff';
 	for(var ligne = 0, hauteur = taille.hauteur; ligne < hauteur; ligne++) {
 		for(var colonne = 0, largeur = taille.largeur; colonne < largeur; colonne++) {
 			if(table[ligne][colonne]) canvas.fillRect(colonne * taillePixelX, ligne * taillePixelY, taillePixelX, taillePixelY);
 		}
 	}
+}
+
+// Affichage de l'outils selectionné
+function dessinerOutil(){
+	var taillePixelX = canvasHTML.clientWidth / taille.largeur;
+	var taillePixelY = canvasHTML.clientHeight / taille.hauteur;
+	
 	canvas.fillStyle = '#ff0000';
 	
-	if(mouseOver) {
-		if(shiftPressed) {
-			for(var ligne = 0; ligne < patternActuel.length; ligne++){
-				for(var col = 0; col < patternActuel[ligne].length; col++){
-					var xRel = coordMouse[0] + col;
-					xRel = (xRel >= taille.largeur) ? (xRel - taille.largeur) : (xRel < 0) ? xRel + taille.largeur : xRel;
-					var yRel = coordMouse[1] + ligne;
-					yRel = (yRel >= taille.hauteur) ? (yRel - taille.hauteur) : (yRel < 0) ? yRel + taille.hauteur : yRel;
-					if(patternActuel[ligne][col]) canvas.fillRect(xRel * taillePixelX, yRel * taillePixelY, taillePixelX, taillePixelY);
-				}
+	if(shiftPressed) {
+		for(var ligne = 0; ligne < patternActuel.length; ligne++){
+			for(var col = 0; col < patternActuel[ligne].length; col++){
+				//xRel et yRel permettent de connecter les bord entre eux
+				var xRel = coordMouse[0] + col;
+				xRel = (xRel >= taille.largeur) ? (xRel - taille.largeur) : (xRel < 0) ? xRel + taille.largeur : xRel;
+				var yRel = coordMouse[1] + ligne;
+				yRel = (yRel >= taille.hauteur) ? (yRel - taille.hauteur) : (yRel < 0) ? yRel + taille.hauteur : yRel;
+				if(patternActuel[ligne][col]) canvas.fillRect(xRel * taillePixelX, yRel * taillePixelY, taillePixelX, taillePixelY);
 			}
 		}
-		else canvas.fillRect(coordMouse[0] * taillePixelX, coordMouse[1] * taillePixelY, taillePixelX, taillePixelY);
+	}
+	else canvas.fillRect(coordMouse[0] * taillePixelX, coordMouse[1] * taillePixelY, taillePixelX, taillePixelY);
+}
+
+function dessinerCanvas() {
+	dessinerJeu();
+	
+	if(mouseOver) {
+		dessinerOutil();
 	}
 }
+
+/************ Fin de l'affichage du canvas ******************/
 
 function changerTaille() {
 	taille.hauteur = tailleSelecteurHTML.elements[0].value * 1;
@@ -114,7 +136,6 @@ document.getElementById('tailleSelecteurBouton').onclick = changerTaille;
 window.onresize = function(){
 	canvasHTML.width = canvasHTML.clientWidth;
 	canvasHTML.height = canvasHTML.clientHeight;
-	drawCanvasTest();
 }
 
 var tempo = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -157,7 +178,6 @@ function setGame(mode = 'aleatoire') {
 	}
 	canvasHTML.width = canvasHTML.clientWidth;
 	canvasHTML.height = canvasHTML.clientHeight;
-	drawCanvasTest();
 }
 
 // Ajoute +1 à la somme des voisins de chaque cellule voisine de la cellule indiqué
@@ -200,7 +220,6 @@ function nouveauCycle() {
 			somme[ligne][colonne] = 0;
 		}
 	}
-	drawCanvasTest();
 	var tempsTemp = 0;
 	for(var i = 1; i < 10; i++) tempsTemp += (tempo[i] - tempo[i-1]);
 	tempsTemp /= 10;
@@ -218,6 +237,7 @@ tailleSelecteurHTML.elements[1].value = taille.largeur
 var afficheTest = document.getElementById("fill");
 
 setGame();
+dessinerCanvasInterval = setInterval(dessinerCanvas, 16.67);
 infoStatsHTML.innerHTML = 'Génération 0 : ' + nbVivant + ' Cellule vivante (+0)';
 
 var isAlive = 0;
@@ -228,10 +248,18 @@ launcher.onclick = function(){
 		isAlive = 0;
 		launcher.innerHTML = 'Play';
 		afficheTest.innerHTML = '';
+		if(vitesse < 16.67) {
+			clearInterval(dessinerCanvasInterval);
+			dessinerCanvasInterval = setInterval(dessinerCanvas, 16.67);
+		}
 	}
 	else {
 		isAlive = setInterval(nouveauCycle, vitesse);
 		launcher.innerHTML = 'Pause';
+		if(vitesse < 16.67) {
+			clearInterval(dessinerCanvasInterval);
+			dessinerCanvasInterval = setInterval(dessinerCanvas, vitesse);
+		}
 	}
 }
 document.getElementById("nuke").onclick = function(){
@@ -245,11 +273,14 @@ document.getElementById("nuke").onclick = function(){
 		isAlive = 0;
 		launcher.innerHTML = 'Play';
 		afficheTest.innerHTML = '';
+		if(vitesse < 16.67) {
+			clearInterval(dessinerCanvasInterval);
+			dessinerCanvasInterval = setInterval(dessinerCanvas, 16.67);
+		}
 	}
 	nbGeneration = 0;
 	nbVivant = 0;
 	infoStatsHTML.innerHTML = 'Génération 0 : 0 Cellule vivante (+0)';
-	drawCanvasTest();
 }
 
 document.getElementById("respawn").onclick = function(){
@@ -267,6 +298,14 @@ vitesseSelecteur.oninput = function(e){
 	if(isAlive != 0) {
 		clearInterval(isAlive);
 		isAlive = setInterval(nouveauCycle, vitesse);
+		if(vitesse < 16.67) {
+			clearInterval(dessinerCanvasInterval);
+			dessinerCanvasInterval = setInterval(dessinerCanvas, vitesse);
+		}
+		else {
+			clearInterval(dessinerCanvasInterval);
+			dessinerCanvasInterval = setInterval(dessinerCanvas, 16.67);
+		}
 	}
 }
 
@@ -334,7 +373,6 @@ function painting(e) {
 		canvas.fillStyle = (e.altKey) ? '#0' : '#f';
 		canvas.fillRect(coordMouse[0] * taillePixelX, coordMouse[1] * taillePixelY, taillePixelX, taillePixelY);
 	}
-	drawCanvasTest();
 }
 
 function paintingStart(e) {
@@ -355,7 +393,6 @@ function paintingStart(e) {
 				table[yRel][xRel] = patternActuel[ligne][col];
 			}
 		}
-		drawCanvasTest();
 	}
 	else {
 		table[y][x] = (e.altKey) ? false : true;
@@ -378,7 +415,6 @@ function paintingLeave() {
 	mouseOver = false;
 	isPainting = false;
     document.getElementById("testtt").innerHTML = '';
-	drawCanvasTest();
 }
 
 //Active certain booléen en fonction des touche enfoncé
