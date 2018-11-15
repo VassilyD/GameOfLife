@@ -82,7 +82,7 @@ var patternActuel = testPattern.slice();
 /************ Gestion de l'affichage du canvas ******************/
 
 // Affiche la grille de cellule
-function dessinerJeu(taillePixel){
+function dessinerJeu(){
 	
 	canvas.clearRect(0, 0, canvasHTML.clientWidth, canvasHTML.clientHeight);
 	
@@ -113,16 +113,13 @@ function dessinerJeu(taillePixel){
 				canvas.fillStyle = '#ffffff';
 			}
 			if(table[ligne][colonne]) canvas.fillRect((j) * taillePixel.x, (i) * taillePixel.y, taillePixel.x, taillePixel.y);
+			//console.log(ligne + ' ' + colonne);
 		}
 	}
-	if(false) {
-		canvas.fillStyle = '#ff0000';
-		canvas.fillRect(0, 0, tailleApparente.largeur * taillePixel.x, 1);
-	}//*/
 }
 
 // Affichage de l'outils selectionné
-function dessinerOutil(taillePixel){
+function dessinerOutil(){
 	canvas.fillStyle = '#ff0000';
 	
 	if(shiftPressed) {
@@ -147,10 +144,10 @@ function dessinerCanvas() {
 	zoomViaClavier();
 	deplacementCanvasPre();
 	
-	dessinerJeu(taillePixel);
+	dessinerJeu();
 	
 	if(mouseOver) {
-		dessinerOutil(taillePixel);
+		dessinerOutil();
 	}
 }
 
@@ -236,8 +233,8 @@ function zooming(e) {
 		else if(tailleApparente.hauteur < 10) zoom.fin.y = (zoom.depart.y + 9) % taille.hauteur;*/
 	}
 	
-	tailleApparente.largeur = (zoom.depart.x < zoom.fin.x) ? zoom.fin.x - zoom.depart.x : taille.largeur - zoom.depart.x + zoom.fin.x;
-	tailleApparente.hauteur = (zoom.depart.y < zoom.fin.y) ? zoom.fin.y - zoom.depart.y : taille.hauteur - zoom.depart.y + zoom.fin.y;
+	tailleApparente.largeur = (zoom.depart.x < zoom.fin.x) ? zoom.fin.x - zoom.depart.x + 1 : taille.largeur - zoom.depart.x + zoom.fin.x + 1;
+	tailleApparente.hauteur = (zoom.depart.y < zoom.fin.y) ? zoom.fin.y - zoom.depart.y + 1 : taille.hauteur - zoom.depart.y + zoom.fin.y + 1;
 	taillePixel.x = canvasHTML.clientWidth / tailleApparente.largeur;
 	taillePixel.y = canvasHTML.clientHeight / tailleApparente.hauteur;
 }
@@ -337,8 +334,8 @@ tailleSelecteurHTML.elements[0].value = taille.hauteur;
 tailleSelecteurHTML.elements[1].value = taille.largeur;
 zoom.depart = {x:0, y:0};
 zoom.fin = {x:taille.largeur - 1, y:taille.hauteur - 1};
-tailleApparente.largeur = (zoom.depart.x < zoom.fin.x) ? zoom.fin.x - zoom.depart.x : taille.largeur - zoom.depart.x + zoom.fin.x;
-tailleApparente.hauteur = (zoom.depart.y < zoom.fin.y) ? zoom.fin.y - zoom.depart.y : taille.hauteur - zoom.depart.y + zoom.fin.y;
+tailleApparente.largeur = (zoom.depart.x < zoom.fin.x) ? zoom.fin.x - zoom.depart.x + 1 : taille.largeur - zoom.depart.x + zoom.fin.x + 1;
+tailleApparente.hauteur = (zoom.depart.y < zoom.fin.y) ? zoom.fin.y - zoom.depart.y + 1 : taille.hauteur - zoom.depart.y + zoom.fin.y + 1;
 
 setGame();
 dessinerCanvasInterval = setInterval(dessinerCanvas, 16.67);
