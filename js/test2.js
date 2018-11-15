@@ -151,57 +151,33 @@ function changerTaille() {
 }
 
 function zooming(e) {
-	var delta = Math.round(tailleApparente.largeur / 50);
 	positionSourieCanvas(e);
-	var coordMouseRel = {	x:(coordMouse.x - zoom.depart.x),
-							y:(coordMouse.y - zoom.depart.y)}
-	if(e.deltaY > 0) {
-		if(zoom.depart.x <= 0) {
-			zoom.fin.x = Math.min(zoom.fin.x + delta*2, taille.largeur - 1);
-		}
-		else if(zoom.fin.x >= taille.largeur - 1) {
-			zoom.depart.x = Math.max(zoom.depart.x - delta*2, 0);
-		}
-		else {
-			zoom.fin.x = Math.min(zoom.fin.x + delta, taille.largeur - 1);
-			zoom.depart.x = Math.max(zoom.depart.x - delta, 0);
-		}
-		
-		if(zoom.depart.y <= 0) {
-			zoom.fin.y = Math.min(zoom.fin.y + delta*2, taille.hauteur - 1);
-		}
-		else if(zoom.fin.y >= taille.hauteur - 1) {
-			zoom.depart.y = Math.max(zoom.depart.y - delta*2, 0);
-		}
-		else {
-			zoom.fin.y = Math.min(zoom.fin.y + delta, taille.hauteur - 1);
-			zoom.depart.y = Math.max(zoom.depart.y - delta, 0);
-		}
-	}
-	else if(e.deltaY < 0) {
-		if(coordMouseRel.x < tailleApparente.largeur / 2) {
-			zoom.fin.x = Math.max(Math.max((zoom.fin.x - delta*2), (zoom.depart.x + 10)), 9);
-		}
-		else if(coordMouseRel.x > tailleApparente.largeur / 2) {
-			zoom.depart.x = Math.min(Math.min((zoom.depart.x + delta*2), (zoom.fin.x - 10)), taille.largeur - 10);
-		}
-		else {
-			zoom.fin.x = Math.max(Math.max((zoom.fin.x - delta), (zoom.depart.x + 10)), 9);
-			zoom.depart.x = Math.min(Math.min((zoom.depart.x + delta), (zoom.fin.x - 10)), taille.largeur - 10);
-		}
-		
-		if(coordMouseRel.y < tailleApparente.hauteur / 2) {
-			zoom.fin.y = Math.max(Math.max((zoom.fin.y - delta*2), (zoom.depart.y + 10)), 9);
-		}
-		else if(coordMouseRel.y > tailleApparente.hauteur / 2) {
-			zoom.depart.y = Math.min(Math.min((zoom.depart.y + delta*2), (zoom.fin.y - 10)), taille.hauteur - 10);
-		}
-		else {
-			zoom.fin.y = Math.max(Math.max((zoom.fin.y - delta), (zoom.depart.y + 10)), 9);
-			zoom.depart.y = Math.min(Math.min((zoom.depart.y + delta), (zoom.fin.y - 10)), taille.hauteur - 10);
-		}
-	}
-	//console.log(e.deltaY);
+	
+	var coordMouseRel = {	x:(coordMouse.x - zoom.depart.x), // coordonné du pointeur dans la zone affiché
+							y:(coordMouse.y - zoom.depart.y)}	
+	var coordMouseRatio = {	x:(coordMouseRel.x / tailleApparente.largeur - 0.5) * 2, // vaut entre -1 et +1 selon si la sourie est plus ou moins à gauche ou plus ou moins à droite
+							y:(coordMouseRel.y / tailleApparente.hauteur - 0.5) * 2} // même chose mais entre le haut et le bas
+							
+	var deltaRatio = {x:Math.max(tailleApparente.largeur / 20, 1), y:Math.max(tailleApparente.hauteur / 20, 1)};
+	
+	var deltaWheel = e.deltaY / Math.abs(e.deltaY); // molette vers l'avant = -1 = zoom in, molette vers l'arrière = 1 = zoom out
+	
+	// pour chaque bord : 	Si zoom in : prendre en compte position curseur pour zoomer en direction de celui ci
+	// 						Sinon, si bord opposé trop proche du bord de la grille alors compenser sur le bord actuel (augmenter le delta)
+	//						Sinon simple delta pour un zoom out loin des bord de la grille
+	var delta = {	left:((deltaWheel == -1) ? ( - deltaRatio.x - deltaRatio.x * coordMouseRatio.x) : (deltaRatio.x >= taille.largeur - zoom.fin.x) ? (deltaRatio.x * 2 - taille.largeur + zoom.fin.x +1) : deltaRatio.x),
+					right:((deltaWheel == -1) ? ( - deltaRatio.x + deltaRatio.x * coordMouseRatio.x) : (deltaRatio.x > zoom.depart.x) ? (deltaRatio.x * 2 - zoom.depart.x) : deltaRatio.x),
+					top:((deltaWheel == -1) ? ( - deltaRatio.y - deltaRatio.y * coordMouseRatio.y) : (deltaRatio.y >= taille.hauteur - zoom.fin.y) ? (deltaRatio.y * 2 - taille.hauteur + zoom.fin.y +1) : deltaRatio.y),
+					bottom:((deltaWheel == -1) ? ( - deltaRatio.y + deltaRatio.y * coordMouseRatio.y) : (deltaRatio.y > zoom.depart.y) ? (deltaRatio.y * 2 - zoom.depart.y) : deltaRatio.y)};
+	
+	// 1) Application du delta
+	// 2) Empêche un zoom plus fort que 10 cellule de côté
+	// 3) Empêche de sortir des limites de la grille
+	zoom.depart.x = Math.round(Math.min(Math.max(Math.min(zoom.depart.x - delta.left, zoom.fin.x - 10), 0), taille.largeur - 11));
+	zoom.depart.y = Math.round(Math.min(Math.max(Math.min(zoom.depart.y - delta.top, zoom.fin.y - 10), 0), taille.hauteur - 11));
+	zoom.fin.x = Math.round(Math.min(Math.max(Math.max(zoom.fin.x + delta.right, zoom.depart.x + 10), 9), taille.largeur - 1));
+	zoom.fin.y = Math.round(Math.min(Math.max(Math.max(zoom.fin.y + delta.bottom, zoom.depart.y + 10), 9), taille.largeur - 1));
+	
 	tailleApparente = {hauteur:(zoom.fin.y - zoom.depart.y), largeur:(zoom.fin.x - zoom.depart.x)};
 	taillePixel.x = canvasHTML.clientWidth / tailleApparente.largeur;
 	taillePixel.y = canvasHTML.clientHeight / tailleApparente.hauteur;
