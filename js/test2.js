@@ -400,6 +400,7 @@ document.getElementById("respawn").onclick = function(){
 
 document.getElementById("deplacementLibre").onclick = function(){
 	deplacementLibre = !deplacementLibre;
+	document.getElementById("deplacementLibre").innerHTML = (deplacementLibre) ? 'Désactiver déplacement libre' : 'Activer déplacement libre';
 }
 
 document.getElementById("onePass").onclick = nouveauCycle;
