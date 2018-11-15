@@ -6,7 +6,7 @@ var tailleSelecteurHTML = document.getElementById('tailleSelecteur');
 var coordMouse = {x:0, y:0};
 var mouseOver = false;
 var vitesseSelecteur = document.getElementById('vitesseSelecteur');
-var vitesse = 10;
+var vitesse = 30;
 var nbGeneration = 0;
 var nbVivant = 0;
 var infoStatsHTML = document.getElementById('infoStats');
@@ -83,6 +83,8 @@ var patternActuel = testPattern.slice();
 // Affiche la grille de cellule
 function dessinerJeu(taillePixel){
 	
+	canvas.clearRect(0, 0, canvasHTML.width, canvasHTML.height);
+	
 	//création d'un fond noir
 	canvas.fillStyle = '#000000';
 	canvas.fillRect(0,0,canvasHTML.clientWidth,canvasHTML.clientHeight);
@@ -119,7 +121,9 @@ function dessinerCanvas() {
 	taillePixel = {	x:(canvasHTML.clientWidth / tailleApparente.largeur), 
 						y:(canvasHTML.clientHeight / tailleApparente.hauteur)}
 	
+	zoomViaClavier();
 	deplacementCanvasPre();
+	
 	dessinerJeu(taillePixel);
 	
 	if(mouseOver) {
@@ -153,6 +157,16 @@ function changerTaille() {
 	setGame();
 }
 
+function zoomViaClavier() {
+	if (toucheEnfonce && (toucheEnfonce[107] || toucheEnfonce[109])) {
+		var e = {};
+		e.offsetX = canvasHTML.width / 2;
+		e.offsetY = canvasHTML.height / 2;
+		e.deltaY = (toucheEnfonce[107]) ? -1 : (toucheEnfonce[109]) ? 1 : 0;
+		zooming(e);
+	}
+}
+
 function zooming(e) {
 	positionSourieCanvas(e);
 	
@@ -161,7 +175,7 @@ function zooming(e) {
 	var coordMouseRatio = {	x:(coordMouseRel.x / tailleApparente.largeur - 0.5) * 2, // vaut entre -1 et +1 selon si la sourie est plus ou moins à gauche ou plus ou moins à droite
 							y:(coordMouseRel.y / tailleApparente.hauteur - 0.5) * 2} // même chose mais entre le haut et le bas
 							
-	var deltaRatio = {x:Math.max(tailleApparente.largeur / 20, 1), y:Math.max(tailleApparente.hauteur / 20, 1)};
+	var deltaRatio = {x:Math.max(tailleApparente.largeur * Math.abs(e.deltaY) / 60, 1), y:Math.max(tailleApparente.hauteur * Math.abs(e.deltaY)/ 60, 1)};
 	
 	var deltaWheel = e.deltaY / Math.abs(e.deltaY); // molette vers l'avant = -1 = zoom in, molette vers l'arrière = 1 = zoom out
 	
@@ -344,7 +358,7 @@ document.getElementById("respawn").onclick = function(){
 document.getElementById("onePass").onclick = nouveauCycle;
 
 vitesseSelecteur.oninput = function(e){
-	vitesse = (500 - vitesseSelecteur.value*1);
+	vitesse = (250 - vitesseSelecteur.value*1);
 	document.getElementById('vitesseAffiche').innerHTML = (Math.floor(100000 / vitesse) / 100) + ' FPS';
 	if(isAlive != 0) {
 		clearInterval(isAlive);
@@ -459,7 +473,7 @@ function paintingLeave() {
 }
 
 function deplacementCanvas(direction) {
-	delta = {x:Math.round(tailleApparente.largeur / 50), y:Math.round(tailleApparente.hauteur / 50)};
+	delta = {x:Math.max(1, Math.round(tailleApparente.largeur / 50)), y:Math.max(1, Math.round(tailleApparente.hauteur / 50))};
 	if(direction[0] != 0) {
 		delta.x = (direction[0] == -1) ? ((delta.x > zoom.depart.x) ? -zoom.depart.x : -delta.x) : ((delta.x > taille.largeur - zoom.fin.x - 1) ? (taille.largeur - zoom.fin.x - 1) : delta.x);
 		zoom.depart.x += delta.x;
@@ -500,15 +514,19 @@ canvasHTML.setAttribute('onmouseleave', "paintingLeave(event)");
 canvasHTML.setAttribute('onmouseenter', "paintingPre(event)");
 canvasHTML.setAttribute('onwheel', "zooming(event)");
 
-document.body.setAttribute('onkeydown', "activeControle(event)");
-document.body.setAttribute('onkeyup', "desactiveControle(event)");
+//document.body.setAttribute('onkeydown', "activeControle(event)");
+//document.body.setAttribute('onkeyup', "desactiveControle(event)");
 
 
 window.addEventListener('keydown', function (e) {
+	var keyCode = e.which || e.keyCode;
+	if(e.key == 'Shift') shiftPressed = true;
 	//e.preventDefault();
 	toucheEnfonce = (toucheEnfonce || []);
-	toucheEnfonce[e.keyCode] = (e.type == "keydown");
+	toucheEnfonce[keyCode] = (e.type == "keydown");
 })
 window.addEventListener('keyup', function (e) {
-	toucheEnfonce[e.keyCode] = (e.type == "keydown");
+	var keyCode = e.which || e.keyCode;
+	if(e.key == 'Shift') shiftPressed = false;
+	toucheEnfonce[keyCode] = (e.type == "keydown");
 })
