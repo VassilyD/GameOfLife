@@ -18,6 +18,8 @@ var taille = {hauteur:0, largeur:0};
 var taillePixel = {x:1, y:1};
 var tailleApparente = {hauteur:0, largeur:0};
 var zoom = {depart:{x:0, y:0}, fin:{x:0, y:0}};
+var deplacementInterval = 0;
+var toucheEnfonce = [];
 var testPattern = [[false, true, false], [false, false, true], [true, true, true]];
 var patternList = {	marcheur:{	
 					NE:[[true, true, true], [false, false, true], [false, true, false]], 
@@ -117,6 +119,7 @@ function dessinerCanvas() {
 	taillePixel = {	x:(canvasHTML.clientWidth / tailleApparente.largeur), 
 						y:(canvasHTML.clientHeight / tailleApparente.hauteur)}
 	
+	deplacementCanvasPre();
 	dessinerJeu(taillePixel);
 	
 	if(mouseOver) {
@@ -421,12 +424,6 @@ function painting(e) {
 function paintingStart(e) {
 	isPainting = true;
 	positionSourieCanvas(e);
-	/*var x = e.offsetX;
-    var y = e.offsetY;
-	var taillePixelX = canvasHTML.clientWidth / taille.largeur;
-	var taillePixelY = canvasHTML.clientHeight / taille.hauteur;
-	x = Math.floor(x / taillePixelX);
-	y = Math.floor(y / taillePixelY);*/
 	if(shiftPressed) {
 		for(var ligne = 0; ligne < patternActuel.length; ligne++){
 			for(var col = 0; col < patternActuel[ligne].length; col++){
@@ -461,13 +458,38 @@ function paintingLeave() {
     document.getElementById("testtt").innerHTML = '';
 }
 
+function deplacementCanvas(direction) {
+	delta = {x:Math.round(tailleApparente.largeur / 50), y:Math.round(tailleApparente.hauteur / 50)};
+	if(direction[0] != 0) {
+		delta.x = (direction[0] == -1) ? ((delta.x > zoom.depart.x) ? -zoom.depart.x : -delta.x) : ((delta.x > taille.largeur - zoom.fin.x - 1) ? (taille.largeur - zoom.fin.x - 1) : delta.x);
+		zoom.depart.x += delta.x;
+		zoom.fin.x += delta.x;
+	}
+	if(direction[1] != 0) {
+		delta.y = (direction[1] == -1) ? ((delta.y > zoom.depart.y) ? -zoom.depart.y : -delta.y) : ((delta.y > taille.hauteur - zoom.fin.y - 1) ? (taille.hauteur - zoom.fin.y - 1) : delta.y);
+		zoom.depart.y += delta.y;
+		zoom.fin.y += delta.y;
+	}
+}
+
+function deplacementCanvasPre() {
+	var direction = [0, 0];
+    if (toucheEnfonce && toucheEnfonce[37]) {direction[0] = -1; }
+    if (toucheEnfonce && toucheEnfonce[39]) {direction[0] = 1; }
+    if (toucheEnfonce && toucheEnfonce[38]) {direction[1] = -1; }
+    if (toucheEnfonce && toucheEnfonce[40]) {direction[1] = 1; }
+	deplacementCanvas(direction);
+}
+
 //Active certain booléen en fonction des touche enfoncé
 function activeControle(e) {
+	var keyCode = e.which || e.keyCode;
 	if(e.key == 'Shift') shiftPressed = true;
 }
 
 //Désctive certain booléen en fonction des touche enfoncé
 function desactiveControle(e) {
+	var keyCode = e.which || e.keyCode;
 	if(e.key == 'Shift') shiftPressed = false;
 }
 
@@ -480,3 +502,13 @@ canvasHTML.setAttribute('onwheel', "zooming(event)");
 
 document.body.setAttribute('onkeydown', "activeControle(event)");
 document.body.setAttribute('onkeyup', "desactiveControle(event)");
+
+
+window.addEventListener('keydown', function (e) {
+	//e.preventDefault();
+	toucheEnfonce = (toucheEnfonce || []);
+	toucheEnfonce[e.keyCode] = (e.type == "keydown");
+})
+window.addEventListener('keyup', function (e) {
+	toucheEnfonce[e.keyCode] = (e.type == "keydown");
+})
