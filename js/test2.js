@@ -93,34 +93,22 @@ function dessinerJeu(){
 	
 	//création des cellules vivantes
 	canvas.fillStyle = '#ffffff';
-	/*for(var ligne = zoom.depart.y, hauteur = zoom.fin.y; ligne <= hauteur; ligne++) {
-		for(var colonne = zoom.depart.x, largeur = zoom.fin.x; colonne <= largeur; colonne++) {
-			if(table[ligne][colonne]) canvas.fillRect((colonne - zoom.depart.x) * taillePixel.x, (ligne - zoom.depart.y) * taillePixel.y, taillePixel.x, taillePixel.y);
-		}
-	}//*/
-	/*tailleApparente.largeur = (zoom.depart.x < zoom.fin.x) ? zoom.fin.x - zoom.depart.x : taille.largeur - zoom.depart.x + zoom.fin.x;
-	tailleApparente.hauteur = (zoom.depart.y < zoom.fin.y) ? zoom.fin.y - zoom.depart.y : taille.hauteur - zoom.depart.y + zoom.fin.y;//*/
 	for(var ligne = zoom.depart.y, i = 0, hauteur = tailleApparente.hauteur; i < hauteur; ligne = ++ligne % taille.hauteur, i++) {
-		if(deplacementLibre && ligne == 0) {
-			canvas.fillStyle = '#ff0000';
-			canvas.fillRect(0, i * taillePixel.y - 1, tailleApparente.largeur * taillePixel.x, 2);
-			canvas.fillStyle = '#ffffff';
-		}
 		for(var colonne = zoom.depart.x, j = 0, largeur = tailleApparente.largeur; j < largeur; colonne = ++colonne % taille.largeur, j++) {
-			if(deplacementLibre && colonne == 0) {
-				canvas.fillStyle = '#ff0000';
-				canvas.fillRect(j * taillePixel.x - 1, 0, 2, tailleApparente.largeur * taillePixel.x);
+			if(table[ligne][colonne]) canvas.fillRect((j) * taillePixel.x, (i) * taillePixel.y, taillePixel.x, taillePixel.y);
+			if(deplacementLibre && ((ligne == 0 && colonne == zoom.fin.x) || (colonne == 0 && ligne == zoom.fin.y))) {
+				canvas.fillStyle = 'rgba(255,0,0,0.33)';
+				if(ligne == 0) canvas.fillRect(0, i * taillePixel.y - 2, tailleApparente.largeur * taillePixel.x, 4);
+				if(colonne == 0) canvas.fillRect(j * taillePixel.x - 2, 0, 4, tailleApparente.largeur * taillePixel.x);
 				canvas.fillStyle = '#ffffff';
 			}
-			if(table[ligne][colonne]) canvas.fillRect((j) * taillePixel.x, (i) * taillePixel.y, taillePixel.x, taillePixel.y);
-			//console.log(ligne + ' ' + colonne);
 		}
 	}
 }
 
 // Affichage de l'outils selectionné
 function dessinerOutil(){
-	canvas.fillStyle = '#ff0000';
+	canvas.fillStyle = 'rgba(255,0,0,1)';
 	
 	if(shiftPressed) {
 		for(var ligne = 0; ligne < patternActuel.length; ligne++){
@@ -130,7 +118,8 @@ function dessinerOutil(){
 				xRel = (xRel >= taille.largeur) ? (xRel - taille.largeur) : (xRel < 0) ? xRel + taille.largeur : xRel;
 				var yRel = coordMouse.y + ligne;
 				yRel = (yRel >= taille.hauteur) ? (yRel - taille.hauteur) : (yRel < 0) ? yRel + taille.hauteur : yRel;
-				if(patternActuel[ligne][col]) canvas.fillRect(((xRel - zoom.depart.x + taille.largeur) % taille.largeur) * taillePixel.x, ((yRel - zoom.depart.y + taille.hauteur) % taille.hauteur) * taillePixel.y, taillePixel.x, taillePixel.y);
+				canvas.fillStyle = (patternActuel[ligne][col]) ? 'rgba(255,0,0,0.9)' : 'rgba(0,0,0,0.9)';
+				canvas.fillRect(((xRel - zoom.depart.x + taille.largeur) % taille.largeur) * taillePixel.x, ((yRel - zoom.depart.y + taille.hauteur) % taille.hauteur) * taillePixel.y, taillePixel.x, taillePixel.y);
 			}
 		}
 	}
@@ -190,8 +179,8 @@ function zoomViaClavier() {
 function zooming(e) {
 	positionSourieCanvas(e);
 	
-	var coordMouseRel = {	x:(coordMouse.x - zoom.depart.x), // coordonné du pointeur dans la zone affiché
-							y:(coordMouse.y - zoom.depart.y)}	
+	var coordMouseRel = {	x:(coordMouse.x - zoom.depart.x + taille.largeur) % taille.largeur, // coordonné du pointeur dans la zone affiché
+							y:(coordMouse.y - zoom.depart.y + taille.hauteur) % taille.hauteur}	
 	var coordMouseRatio = {	x:(coordMouseRel.x / tailleApparente.largeur - 0.5) * 2, // vaut entre -1 et +1 selon si la sourie est plus ou moins à gauche ou plus ou moins à droite
 							y:(coordMouseRel.y / tailleApparente.hauteur - 0.5) * 2} // même chose mais entre le haut et le bas
 							
@@ -201,7 +190,7 @@ function zooming(e) {
 	
 	// pour chaque bord : 	Si zoom in : prendre en compte position curseur pour zoomer en direction de celui ci
 	// 						Sinon, si bord opposé trop proche du bord de la grille alors compenser sur le bord actuel (augmenter le delta)
-	//						Sinon simple delta pour un zoom out loin des bord de la grille
+	//						Sinon simple delta pour un zoom out loin des bord de la grille ou lorsque le deplacement libre est activé
 	var delta = {	
 		left:((deltaWheel == -1)?( - deltaRatio.x - deltaRatio.x * coordMouseRatio.x) : (!deplacementLibre && deltaRatio.x >= taille.largeur - zoom.fin.x) ? (deltaRatio.x * 2 - taille.largeur + zoom.fin.x +1) : deltaRatio.x),
 		right:((deltaWheel == -1) ? ( - deltaRatio.x + deltaRatio.x * coordMouseRatio.x) : (!deplacementLibre && deltaRatio.x > zoom.depart.x) ? (deltaRatio.x * 2 - zoom.depart.x) : deltaRatio.x),
@@ -218,12 +207,19 @@ function zooming(e) {
 		zoom.fin.y = Math.round(Math.min(Math.max(Math.max(zoom.fin.y + delta.bottom, zoom.depart.y + 10), 9), taille.hauteur - 1));
 	}
 	else {
-		var inversionX = {t: zoom.fin.x < zoom.depart.x, vf: zoom.fin.x + taille.largeur, vdi: zoom.depart.x - taille.largeur, vdo: zoom.depart.x + taille.largeur};
-		var inversionY = {t: zoom.fin.y < zoom.depart.y, vf: zoom.fin.y + taille.hauteur, vdi: zoom.depart.y - taille.hauteur, vdo: zoom.depart.y + taille.hauteur};
-		zoom.depart.x = (Math.max(Math.min(Math.round(zoom.depart.x - delta.left), ((inversionX.t) ? inversionX.vf : zoom.fin.x) - 10), ((inversionX.t) ? zoom.fin.x : inversionX.vf) + 1) + taille.largeur) % taille.largeur;
-		zoom.depart.y = (Math.max(Math.min(Math.round(zoom.depart.y - delta.top), ((inversionY.t) ? inversionY.vf : zoom.fin.y) - 10), ((inversionY.t) ? zoom.fin.y : inversionY.vf) + 1) + taille.hauteur) % taille.hauteur;
-		zoom.fin.x = (Math.min(Math.max(Math.round(zoom.fin.x + delta.right), ((inversionX.t) ? inversionX.vdi : zoom.depart.x) + 10), ((inversionX.t) ? zoom.depart.x : inversionX.vdo) - 1) + taille.largeur) % taille.largeur;
-		zoom.fin.y = (Math.min(Math.max(Math.round(zoom.fin.y + delta.bottom), ((inversionY.t) ? inversionY.vdi : zoom.depart.y) + 10), ((inversionY.t) ? zoom.depart.y : inversionY.vdo) - 1) + taille.hauteur) % taille.hauteur;
+		function zoomInversion(){
+			return {X:{t: zoom.fin.x < zoom.depart.x, vfi: zoom.fin.x + taille.largeur, vfo: zoom.fin.x - taille.largeur, vdi: zoom.depart.x - taille.largeur, vdo: zoom.depart.x + taille.largeur}, 
+					Y:{t: zoom.fin.y < zoom.depart.y, vfi: zoom.fin.y + taille.hauteur, vfo: zoom.fin.y - taille.hauteur, vdi: zoom.depart.y - taille.hauteur, vdo: zoom.depart.y + taille.hauteur}};
+		}
+		var inversion = zoomInversion();
+		
+		zoom.depart.x = (Math.max(Math.min(Math.round(zoom.depart.x - delta.left), ((inversion.X.t) ? inversion.X.vfi : zoom.fin.x) - 10), ((inversion.X.t) ? zoom.fin.x : inversion.X.vfo) + 1) + taille.largeur) % taille.largeur;
+		zoom.depart.y = (Math.max(Math.min(Math.round(zoom.depart.y - delta.top), ((inversion.Y.t) ? inversion.Y.vfi : zoom.fin.y) - 10), ((inversion.Y.t) ? zoom.fin.y : inversion.Y.vfo) + 1) + taille.hauteur) % taille.hauteur;
+		
+		inversion = zoomInversion();
+		
+		zoom.fin.x = (Math.min(Math.max(Math.round(zoom.fin.x + delta.right), ((inversion.X.t) ? inversion.X.vdi : zoom.depart.x) + 10), ((inversion.X.t) ? zoom.depart.x : inversion.X.vdo) - 1) + taille.largeur) % taille.largeur;
+		zoom.fin.y = (Math.min(Math.max(Math.round(zoom.fin.y + delta.bottom), ((inversion.Y.t) ? inversion.Y.vdi : zoom.depart.y) + 10), ((inversion.Y.t) ? zoom.depart.y : inversion.Y.vdo) - 1) + taille.hauteur) % taille.hauteur;
 	}
 	
 	tailleApparente.largeur = (zoom.depart.x < zoom.fin.x) ? zoom.fin.x - zoom.depart.x + 1 : taille.largeur - zoom.depart.x + zoom.fin.x + 1;
@@ -468,8 +464,6 @@ function painting(e) {
     document.getElementById("testtt").innerHTML = coor;
 	if(isPainting && !shiftPressed) {
 		table[coordMouse.y][coordMouse.x] = (e.altKey) ? false : true;
-		canvas.fillStyle = (e.altKey) ? '#0' : '#f';
-		canvas.fillRect(coordMouse.x * taillePixel.x, coordMouse.y * taillePixel.y, taillePixel.x, taillePixel.y);
 	}
 }
 
@@ -489,8 +483,6 @@ function paintingStart(e) {
 	}
 	else {
 		table[coordMouse.y][coordMouse.x] = (e.altKey) ? false : true;
-		canvas.fillStyle = (e.altKey) ? '#0' : '#f';
-		canvas.fillRect(coordMouse.x * taillePixel.x, coordMouse.y * taillePixel.y, taillePixel.x, taillePixel.y);
 	}
 }
 
