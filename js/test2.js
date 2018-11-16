@@ -101,15 +101,15 @@ function dessinerJeu(){
 	/*tailleApparente.largeur = (zoom.depart.x < zoom.fin.x) ? zoom.fin.x - zoom.depart.x : taille.largeur - zoom.depart.x + zoom.fin.x;
 	tailleApparente.hauteur = (zoom.depart.y < zoom.fin.y) ? zoom.fin.y - zoom.depart.y : taille.hauteur - zoom.depart.y + zoom.fin.y;//*/
 	for(var ligne = zoom.depart.y, i = 0, hauteur = tailleApparente.hauteur; i < hauteur; ligne = ++ligne % taille.hauteur, i++) {
-		if(deplacementLibre && (ligne == 0 || ligne == taille.hauteur)) {
+		if(deplacementLibre && ligne == 0) {
 			canvas.fillStyle = '#ff0000';
-			canvas.fillRect(0, i * taillePixel.y, tailleApparente.largeur * taillePixel.x, 2);
+			canvas.fillRect(0, i * taillePixel.y - 1, tailleApparente.largeur * taillePixel.x, 2);
 			canvas.fillStyle = '#ffffff';
 		}
 		for(var colonne = zoom.depart.x, j = 0, largeur = tailleApparente.largeur; j < largeur; colonne = ++colonne % taille.largeur, j++) {
-			if(deplacementLibre && (colonne == 0 || colonne == taille.largeur)) {
+			if(deplacementLibre && colonne == 0) {
 				canvas.fillStyle = '#ff0000';
-				canvas.fillRect(j * taillePixel.x, 0, 1, tailleApparente.largeur * taillePixel.x);
+				canvas.fillRect(j * taillePixel.x - 1, 0, 2, tailleApparente.largeur * taillePixel.x);
 				canvas.fillStyle = '#ffffff';
 			}
 			if(table[ligne][colonne]) canvas.fillRect((j) * taillePixel.x, (i) * taillePixel.y, taillePixel.x, taillePixel.y);
@@ -130,11 +130,11 @@ function dessinerOutil(){
 				xRel = (xRel >= taille.largeur) ? (xRel - taille.largeur) : (xRel < 0) ? xRel + taille.largeur : xRel;
 				var yRel = coordMouse.y + ligne;
 				yRel = (yRel >= taille.hauteur) ? (yRel - taille.hauteur) : (yRel < 0) ? yRel + taille.hauteur : yRel;
-				if(patternActuel[ligne][col]) canvas.fillRect((xRel - zoom.depart.x) * taillePixel.x, (yRel - zoom.depart.y) * taillePixel.y, taillePixel.x, taillePixel.y);
+				if(patternActuel[ligne][col]) canvas.fillRect(((xRel - zoom.depart.x + taille.largeur) % taille.largeur) * taillePixel.x, ((yRel - zoom.depart.y + taille.hauteur) % taille.hauteur) * taillePixel.y, taillePixel.x, taillePixel.y);
 			}
 		}
 	}
-	else canvas.fillRect((coordMouse.x - zoom.depart.x) * taillePixel.x, (coordMouse.y - zoom.depart.y) * taillePixel.y, taillePixel.x, taillePixel.y);
+	else canvas.fillRect(((coordMouse.x - zoom.depart.x + taille.largeur) % taille.largeur) * taillePixel.x, ((coordMouse.y - zoom.depart.y + taille.hauteur) % taille.hauteur) * taillePixel.y, taillePixel.x, taillePixel.y);
 }
 
 function dessinerCanvas() {
@@ -165,8 +165,8 @@ function positionSourieCanvas(e){
 	//tailleApparente = {hauteur:(zoom.fin.y - zoom.depart.y), largeur:(zoom.fin.x - zoom.depart.x)};
 	taillePixel.x = canvasHTML.clientWidth / tailleApparente.largeur;
 	taillePixel.y = canvasHTML.clientHeight / tailleApparente.hauteur;
-	coordMouse.x = zoom.depart.x + Math.floor(x / taillePixel.x);
-	coordMouse.y = zoom.depart.y + Math.floor(y / taillePixel.y);
+	coordMouse.x = (zoom.depart.x + Math.floor(x / taillePixel.x)) % taille.largeur;
+	coordMouse.y = (zoom.depart.y + Math.floor(y / taillePixel.y)) % taille.hauteur;
 }
 
 function changerTaille() {
@@ -218,19 +218,12 @@ function zooming(e) {
 		zoom.fin.y = Math.round(Math.min(Math.max(Math.max(zoom.fin.y + delta.bottom, zoom.depart.y + 10), 9), taille.hauteur - 1));
 	}
 	else {
-		zoom.depart.x = Math.max(Math.min((Math.round(zoom.depart.x - delta.left) + taille.largeur) % taille.largeur, (zoom.fin.x - 10 + taille.largeur) % taille.largeur), (zoom.fin.x < zoom.depart.x) ? zoom.fin.x + 1 : zoom.depart.x - 1);
-		zoom.depart.y = Math.max(Math.min((Math.round(zoom.depart.y - delta.top) + taille.hauteur) % taille.hauteur, (zoom.fin.y - 10 + taille.hauteur) % taille.hauteur), (zoom.fin.y < zoom.depart.y) ? zoom.fin.y + 1 : zoom.depart.y - 1);
-		zoom.fin.x = Math.min(Math.max((Math.round(zoom.fin.x + delta.right) + taille.largeur) % taille.largeur, (zoom.depart.x + 10 + taille.largeur) % taille.largeur), (zoom.fin.x < zoom.depart.x) ? zoom.depart.x - 1 : zoom.fin.x + 1);
-		zoom.fin.y = Math.min(Math.max((Math.round(zoom.fin.y + delta.bottom) + taille.hauteur) % taille.hauteur, (zoom.depart.y + 10 + taille.hauteur) % taille.hauteur), (zoom.depart.y + taille.hauteur - 1) % taille.hauteur);
-		
-		/*tailleApparente.largeur = (zoom.depart.x < zoom.fin.x) ? zoom.fin.x - zoom.depart.x : taille.largeur - zoom.depart.x + zoom.fin.x;
-		tailleApparente.hauteur = (zoom.depart.y < zoom.fin.y) ? zoom.fin.y - zoom.depart.y : taille.hauteur - zoom.depart.y + zoom.fin.y;
-		
-		if(tailleApparente.largeur > taille.largeur) zoom.fin.x = (zoom.depart.x + taille.largeur - 1) % taille.largeur;
-		else if(tailleApparente.largeur < 10) zoom.fin.x = (zoom.depart.x + 9) % taille.largeur;
-		
-		if(tailleApparente.hauteur > taille.hauteur) zoom.fin.y = (zoom.depart.y + taille.hauteur - 1) % taille.hauteur;
-		else if(tailleApparente.hauteur < 10) zoom.fin.y = (zoom.depart.y + 9) % taille.hauteur;*/
+		var inversionX = {t: zoom.fin.x < zoom.depart.x, vf: zoom.fin.x + taille.largeur, vdi: zoom.depart.x - taille.largeur, vdo: zoom.depart.x + taille.largeur};
+		var inversionY = {t: zoom.fin.y < zoom.depart.y, vf: zoom.fin.y + taille.hauteur, vdi: zoom.depart.y - taille.hauteur, vdo: zoom.depart.y + taille.hauteur};
+		zoom.depart.x = (Math.max(Math.min(Math.round(zoom.depart.x - delta.left), ((inversionX.t) ? inversionX.vf : zoom.fin.x) - 10), ((inversionX.t) ? zoom.fin.x : inversionX.vf) + 1) + taille.largeur) % taille.largeur;
+		zoom.depart.y = (Math.max(Math.min(Math.round(zoom.depart.y - delta.top), ((inversionY.t) ? inversionY.vf : zoom.fin.y) - 10), ((inversionY.t) ? zoom.fin.y : inversionY.vf) + 1) + taille.hauteur) % taille.hauteur;
+		zoom.fin.x = (Math.min(Math.max(Math.round(zoom.fin.x + delta.right), ((inversionX.t) ? inversionX.vdi : zoom.depart.x) + 10), ((inversionX.t) ? zoom.depart.x : inversionX.vdo) - 1) + taille.largeur) % taille.largeur;
+		zoom.fin.y = (Math.min(Math.max(Math.round(zoom.fin.y + delta.bottom), ((inversionY.t) ? inversionY.vdi : zoom.depart.y) + 10), ((inversionY.t) ? zoom.depart.y : inversionY.vdo) - 1) + taille.hauteur) % taille.hauteur;
 	}
 	
 	tailleApparente.largeur = (zoom.depart.x < zoom.fin.x) ? zoom.fin.x - zoom.depart.x + 1 : taille.largeur - zoom.depart.x + zoom.fin.x + 1;
@@ -521,9 +514,8 @@ function deplacementCanvas(direction) {
 	delta = {x:Math.max(1, Math.round(tailleApparente.largeur / 50)), y:Math.max(1, Math.round(tailleApparente.hauteur / 50))};
 	if(direction[0] != 0) {
 		if(!deplacementLibre) {
-			delta.x = (direction[0] == -1) ? ((delta.x > zoom.depart.x) ? -zoom.depart.x : -delta.x) : ((delta.x > taille.largeur - zoom.fin.x - 1) ? (taille.largeur - zoom.fin.x - 1) : delta.x);
-			zoom.depart.x += delta.x;
-			zoom.fin.x += delta.x;
+			zoom.depart.x = Math.min(Math.max(zoom.depart.x + direction[0] * delta.x, 0),  taille.largeur - tailleApparente.largeur);
+			zoom.fin.x = Math.min(Math.max(zoom.fin.x + direction[0] * delta.x, tailleApparente.largeur),  taille.largeur - 1);
 		} else {
 			zoom.depart.x = (zoom.depart.x + direction[0] * delta.x + taille.largeur) % taille.largeur;
 			zoom.fin.x = (zoom.fin.x + direction[0] * delta.x + taille.largeur) % taille.largeur;
@@ -531,9 +523,8 @@ function deplacementCanvas(direction) {
 	}
 	if(direction[1] != 0) {
 		if(!deplacementLibre) {
-			delta.y = (direction[1] == -1) ? ((delta.y > zoom.depart.y) ? -zoom.depart.y : -delta.y) : ((delta.y > taille.hauteur - zoom.fin.y - 1) ? (taille.hauteur - zoom.fin.y - 1) : delta.y);
-			zoom.depart.y += delta.y;
-			zoom.fin.y += delta.y;
+			zoom.depart.y = Math.min(Math.max(zoom.depart.y + direction[1] * delta.y, 0),  taille.hauteur - tailleApparente.hauteur);
+			zoom.fin.y = Math.min(Math.max(zoom.fin.y + direction[1] * delta.y, tailleApparente.hauteur),  taille.hauteur - 1);
 		} else {
 			zoom.depart.y = (zoom.depart.y + direction[1] * delta.y + taille.hauteur) % taille.hauteur;
 			zoom.fin.y = (zoom.fin.y + direction[1] * delta.y + taille.hauteur) % taille.hauteur;
