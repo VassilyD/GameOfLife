@@ -199,28 +199,22 @@ function zooming(e) {
 	
 	// 1) Application du delta
 	// 2) Empêche un zoom plus fort que 10 cellule de côté
-	// 3) Empêche de sortir des limites de la grille
-	if(!deplacementLibre) {
-		zoom.depart.x = Math.round(Math.min(Math.max(Math.min(zoom.depart.x - delta.left, zoom.fin.x - 10), 0), taille.largeur - 11));
-		zoom.depart.y = Math.round(Math.min(Math.max(Math.min(zoom.depart.y - delta.top, zoom.fin.y - 10), 0), taille.hauteur - 11));
-		zoom.fin.x = Math.round(Math.min(Math.max(Math.max(zoom.fin.x + delta.right, zoom.depart.x + 10), 9), taille.largeur - 1));
-		zoom.fin.y = Math.round(Math.min(Math.max(Math.max(zoom.fin.y + delta.bottom, zoom.depart.y + 10), 9), taille.hauteur - 1));
+	// 3) Empêche de sortir des limites de la grille   !deplacementLibre
+	function zoomAdapt(){
+		return {X:{t: zoom.fin.x < zoom.depart.x, vfi: zoom.fin.x + taille.largeur, vfo: zoom.fin.x - taille.largeur, vdi: zoom.depart.x - taille.largeur, vdo: zoom.depart.x + taille.largeur}, 
+				Y:{t: zoom.fin.y < zoom.depart.y, vfi: zoom.fin.y + taille.hauteur, vfo: zoom.fin.y - taille.hauteur, vdi: zoom.depart.y - taille.hauteur, vdo: zoom.depart.y + taille.hauteur}};
 	}
-	else {
-		function zoomInversion(){
-			return {X:{t: zoom.fin.x < zoom.depart.x, vfi: zoom.fin.x + taille.largeur, vfo: zoom.fin.x - taille.largeur, vdi: zoom.depart.x - taille.largeur, vdo: zoom.depart.x + taille.largeur}, 
-					Y:{t: zoom.fin.y < zoom.depart.y, vfi: zoom.fin.y + taille.hauteur, vfo: zoom.fin.y - taille.hauteur, vdi: zoom.depart.y - taille.hauteur, vdo: zoom.depart.y + taille.hauteur}};
-		}
-		var inversion = zoomInversion();
-		
-		zoom.depart.x = (Math.max(Math.min(Math.round(zoom.depart.x - delta.left), ((inversion.X.t) ? inversion.X.vfi : zoom.fin.x) - 10), ((inversion.X.t) ? zoom.fin.x : inversion.X.vfo) + 1) + taille.largeur) % taille.largeur;
-		zoom.depart.y = (Math.max(Math.min(Math.round(zoom.depart.y - delta.top), ((inversion.Y.t) ? inversion.Y.vfi : zoom.fin.y) - 10), ((inversion.Y.t) ? zoom.fin.y : inversion.Y.vfo) + 1) + taille.hauteur) % taille.hauteur;
-		
-		inversion = zoomInversion();
-		
-		zoom.fin.x = (Math.min(Math.max(Math.round(zoom.fin.x + delta.right), ((inversion.X.t) ? inversion.X.vdi : zoom.depart.x) + 10), ((inversion.X.t) ? zoom.depart.x : inversion.X.vdo) - 1) + taille.largeur) % taille.largeur;
-		zoom.fin.y = (Math.min(Math.max(Math.round(zoom.fin.y + delta.bottom), ((inversion.Y.t) ? inversion.Y.vdi : zoom.depart.y) + 10), ((inversion.Y.t) ? zoom.depart.y : inversion.Y.vdo) - 1) + taille.hauteur) % taille.hauteur;
-	}
+	var adapt = zoomAdapt();
+	
+	zoom.depart.x = (Math.min(Math.max(Math.min(Math.round(zoom.depart.x - delta.left), ((adapt.X.t) ? adapt.X.vfi : zoom.fin.x) - 10), ((deplacementLibre) ? (((adapt.X.t) ? zoom.fin.x : adapt.X.vfo) + 1) : 0)), (deplacementLibre) ? Math.round(zoom.depart.x + Math.abs(delta.left)) : taille.largeur - 11) + taille.largeur) % taille.largeur;
+	
+	zoom.depart.y = (Math.min(Math.max(Math.min(Math.round(zoom.depart.y - delta.top), ((adapt.Y.t) ? adapt.Y.vfi : zoom.fin.y) - 10), ((deplacementLibre) ? (((adapt.Y.t) ? zoom.fin.y : adapt.Y.vfo) + 1) : 0)), (deplacementLibre) ? Math.round(zoom.depart.y + Math.abs(delta.top)) : taille.hauteur - 11) + taille.hauteur) % taille.hauteur;
+	
+	adapt = zoomAdapt();
+	
+	zoom.fin.x = (Math.min(Math.max(Math.round(zoom.fin.x + delta.right), ((adapt.X.t) ? adapt.X.vdi : zoom.depart.x) + 10), ((deplacementLibre) ? (((adapt.X.t) ? zoom.depart.x : adapt.X.vdo) - 1) : taille.largeur - 1)) + taille.largeur) % taille.largeur;
+	
+	zoom.fin.y = (Math.min(Math.max(Math.round(zoom.fin.y + delta.bottom), ((adapt.Y.t) ? adapt.Y.vdi : zoom.depart.y) + 10), ((deplacementLibre) ? (((adapt.Y.t) ? zoom.depart.y : adapt.Y.vdo) - 1) : taille.hauteur - 1)) + taille.hauteur) % taille.hauteur;
 	
 	tailleApparente.largeur = (zoom.depart.x < zoom.fin.x) ? zoom.fin.x - zoom.depart.x + 1 : taille.largeur - zoom.depart.x + zoom.fin.x + 1;
 	tailleApparente.hauteur = (zoom.depart.y < zoom.fin.y) ? zoom.fin.y - zoom.depart.y + 1 : taille.hauteur - zoom.depart.y + zoom.fin.y + 1;
@@ -386,6 +380,18 @@ document.getElementById("respawn").onclick = function(){
 
 document.getElementById("deplacementLibre").onclick = function(){
 	deplacementLibre = !deplacementLibre;
+	if (zoom.depart.x + tailleApparente.largeur >= taille.largeur) {
+		var delta = zoom.depart.x + tailleApparente.largeur - taille.largeur;
+		if(delta > tailleApparente.largeur / 2) delta = -1 * (tailleApparente.largeur - delta);
+		zoom.depart.x = (zoom.depart.x - delta + taille.largeur) % taille.largeur;
+		zoom.fin.x = (zoom.fin.x - delta + taille.largeur) % taille.largeur;
+	}
+	if (zoom.depart.y + tailleApparente.hauteur >= taille.hauteur) {
+		var delta = zoom.depart.y + tailleApparente.hauteur - taille.hauteur;
+		if(delta > tailleApparente.hauteur / 2) delta = -1 * (tailleApparente.hauteur - delta);
+		zoom.depart.y = (zoom.depart.y - delta + taille.hauteur) % taille.hauteur;
+		zoom.fin.y = (zoom.fin.y - delta + taille.hauteur) % taille.hauteur;
+	}
 	document.getElementById("deplacementLibre").innerHTML = (deplacementLibre) ? 'Désactiver déplacement libre' : 'Activer déplacement libre';
 }
 
