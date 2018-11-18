@@ -260,6 +260,8 @@ function setGame(mode = 'aleatoire') {
 			somme[ligne][colonne] = 0;
 		}
 	}
+	zoom.depart = {x:0, y:0};
+	zoom.fin = {x:taille.largeur - 1, y:taille.hauteur - 1};
 	calculerDimension();
 }
 
@@ -322,13 +324,15 @@ function myApp() {
 }
 
 /************* Initialisation *************/
-document.body.onload = function() {
+window.onload = function() {
 	taille.hauteur = 100;
 	taille.largeur = 100;
 	tailleSelecteurHTML.elements[0].value = taille.hauteur;
 	tailleSelecteurHTML.elements[1].value = taille.largeur;
-	zoom.depart = {x:0, y:0};
-	zoom.fin = {x:taille.largeur - 1, y:taille.hauteur - 1};
+	canvasHTML.style.width = '90vh';
+	canvasHTML.style.height = '90vh';
+	canvasHTML.width = canvasHTML.clientWidth;
+	canvasHTML.height = canvasHTML.clientHeight;
 	
 	setGame();
 
