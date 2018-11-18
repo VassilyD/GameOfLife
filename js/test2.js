@@ -15,12 +15,14 @@ var tempo = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 var somme = []; 
 var table = []; 
 var taille = {hauteur:0, largeur:0};
-var taillePixel = {x:1, y:1};
+var taillePixel = 1;
 var tailleApparente = {hauteur:0, largeur:0};
 var zoom = {depart:{x:0, y:0}, fin:{x:0, y:0}};
 var deplacementInterval = 0;
 var toucheEnfonce = [];
 var deplacementLibre = false;
+var isPainting = false;
+var shiftPressed = false;
 var testPattern = [[false, true, false], [false, false, true], [true, true, true]];
 var patternList = {	marcheur:{	
 					NE:[[true, true, true], [false, false, true], [false, true, false]], 
@@ -88,18 +90,18 @@ function dessinerJeu(){
 	
 	//création d'un fond noir
 	canvas.fillStyle = '#000000';
-	canvas.fillRect(0,0,tailleApparente.largeur * taillePixel.x, tailleApparente.hauteur * taillePixel.x);
+	canvas.fillRect(0,0,canvasHTML.clientWidth, canvasHTML.clientHeight);
 	//canvas.fillRect(0,0,canvasHTML.clientWidth,canvasHTML.clientHeight);
 	
 	//création des cellules vivantes
 	canvas.fillStyle = '#ffffff';
 	for(var ligne = zoom.depart.y, i = 0, hauteur = tailleApparente.hauteur; i < hauteur; ligne = ++ligne % taille.hauteur, i++) {
 		for(var colonne = zoom.depart.x, j = 0, largeur = tailleApparente.largeur; j < largeur; colonne = ++colonne % taille.largeur, j++) {
-			if(table[ligne][colonne]) canvas.fillRect((j) * taillePixel.x, (i) * taillePixel.x, taillePixel.x, taillePixel.x);
+			if(table[ligne][colonne]) canvas.fillRect((j) * taillePixel, (i) * taillePixel, taillePixel, taillePixel);
 			if(deplacementLibre && ((ligne == 0 && colonne == zoom.fin.x) || (colonne == 0 && ligne == zoom.fin.y))) {
 				canvas.fillStyle = 'rgba(255,0,0,0.33)';
-				if(ligne == 0) canvas.fillRect(0, i * taillePixel.x - 2, tailleApparente.largeur * taillePixel.x, 2);
-				if(colonne == 0) canvas.fillRect(j * taillePixel.x - 2, 0, 2, tailleApparente.hauteur * taillePixel.x);
+				if(ligne == 0) canvas.fillRect(0, i * taillePixel - 2, tailleApparente.largeur * taillePixel, 2);
+				if(colonne == 0) canvas.fillRect(j * taillePixel - 2, 0, 2, tailleApparente.hauteur * taillePixel);
 				canvas.fillStyle = '#ffffff';
 			}
 		}
@@ -119,17 +121,14 @@ function dessinerOutil(){
 				var yRel = coordMouse.y + ligne;
 				yRel = (yRel >= taille.hauteur) ? (yRel - taille.hauteur) : (yRel < 0) ? yRel + taille.hauteur : yRel;
 				canvas.fillStyle = (patternActuel[ligne][col]) ? 'rgba(255,0,0,0.9)' : 'rgba(0,0,0,0.9)';
-				canvas.fillRect(((xRel - zoom.depart.x + taille.largeur) % taille.largeur) * taillePixel.x, ((yRel - zoom.depart.y + taille.hauteur) % taille.hauteur) * taillePixel.x, taillePixel.x, taillePixel.x);
+				canvas.fillRect(((xRel - zoom.depart.x + taille.largeur) % taille.largeur) * taillePixel, ((yRel - zoom.depart.y + taille.hauteur) % taille.hauteur) * taillePixel, taillePixel, taillePixel);
 			}
 		}
 	}
-	else canvas.fillRect(((coordMouse.x - zoom.depart.x + taille.largeur) % taille.largeur) * taillePixel.x, ((coordMouse.y - zoom.depart.y + taille.hauteur) % taille.hauteur) * taillePixel.x, taillePixel.x, taillePixel.x);
+	else canvas.fillRect(((coordMouse.x - zoom.depart.x + taille.largeur) % taille.largeur) * taillePixel, ((coordMouse.y - zoom.depart.y + taille.hauteur) % taille.hauteur) * taillePixel, taillePixel, taillePixel);
 }
 
-function dessinerCanvas() {
-	taillePixel = {	x:(canvasHTML.clientWidth / tailleApparente.largeur), 
-						y:(canvasHTML.clientHeight / tailleApparente.hauteur)}
-	
+function dessinerCanvas() {	
 	dessinerJeu();
 	
 	if(mouseOver) {
@@ -137,10 +136,25 @@ function dessinerCanvas() {
 	}
 }
 
-window.onresize = function(){
+function calculerDimension() {
+	var myVH = window.innerHeight / 100;
+	var myVW = window.innerWidth / 100;
+	
+	tailleApparente.largeur = (zoom.depart.x < zoom.fin.x) ? zoom.fin.x - zoom.depart.x + 1 : taille.largeur - zoom.depart.x + zoom.fin.x + 1;
+	tailleApparente.hauteur = (zoom.depart.y < zoom.fin.y) ? zoom.fin.y - zoom.depart.y + 1 : taille.hauteur - zoom.depart.y + zoom.fin.y + 1;
+	taillePixel = (taille.largeur < taille.hauteur) ? canvasHTML.clientHeight / tailleApparente.hauteur : canvasHTML.clientWidth / tailleApparente.largeur;
+	
+	canvasHTML.style.width = Math.min((taille.largeur >= taille.hauteur) ? 90*myVH : tailleApparente.largeur * taillePixel, 90*myVH) + 'px';
+	canvasHTML.style.height = Math.min((taille.largeur <= taille.hauteur) ? 90*myVH : tailleApparente.hauteur * taillePixel, 90*myVH) + 'px';
+	canvasHTML.style.right = ((taille.largeur >= taille.hauteur) ? 2.5*myVW : 45*myVH - canvasHTML.clientWidth / 2 + 2.5*myVW) + 'px';
+	canvasHTML.style.top = ((taille.largeur <= taille.hauteur) ? 2.5*myVH : 47.5*myVH - canvasHTML.clientHeight / 2) + 'px';
 	canvasHTML.width = canvasHTML.clientWidth;
 	canvasHTML.height = canvasHTML.clientHeight;
 	dessinerCanvas();
+}
+
+window.onresize = function(){
+	calculerDimension();
 }
 
 /************ Fin de l'affichage du canvas ******************/
@@ -148,11 +162,8 @@ window.onresize = function(){
 function positionSourieCanvas(e){
     var x = e.offsetX;
     var y = e.offsetY;
-	/*tailleApparente = {hauteur:(zoom.fin.y - zoom.depart.y), largeur:(zoom.fin.x - zoom.depart.x)};
-	taillePixel.x = canvasHTML.clientWidth / tailleApparente.largeur;
-	taillePixel.y = canvasHTML.clientHeight / tailleApparente.hauteur;/**/
-	coordMouse.x = (zoom.depart.x + Math.floor(x / taillePixel.x)) % taille.largeur;
-	coordMouse.y = (zoom.depart.y + Math.floor(y / taillePixel.x)) % taille.hauteur;
+	coordMouse.x = (zoom.depart.x + Math.floor(x / taillePixel)) % taille.largeur;
+	coordMouse.y = (zoom.depart.y + Math.floor(y / taillePixel)) % taille.hauteur;
 }
 
 function changerTaille() {
@@ -203,40 +214,17 @@ function zooming(e) {
 	}
 	var adapt = zoomAdapt();
 	
-	zoom.depart.x = (Math.min(Math.max(Math.min(Math.round(zoom.depart.x - delta.left), ((adapt.X.t) ? adapt.X.vfi : zoom.fin.x) - 10), ((deplacementLibre) ? (((adapt.X.t) ? zoom.fin.x : adapt.X.vfo) + 1) : 0)), (deplacementLibre) ? Math.round(zoom.depart.x + Math.abs(delta.left)) : taille.largeur - 11) + taille.largeur) % taille.largeur;
+	if(canvasHTML.clientWidth >= canvasHTML.clientHeight) zoom.depart.x = (Math.min(Math.max(Math.min(Math.round(zoom.depart.x - delta.left), ((adapt.X.t) ? adapt.X.vfi : zoom.fin.x) - 10), ((deplacementLibre) ? (((adapt.X.t) ? zoom.fin.x : adapt.X.vfo) + 1) : 0)), (deplacementLibre) ? Math.round(zoom.depart.x + Math.abs(delta.left)) : taille.largeur - 11) + taille.largeur) % taille.largeur;
 	
-	zoom.depart.y = (Math.min(Math.max(Math.min(Math.round(zoom.depart.y - delta.top), ((adapt.Y.t) ? adapt.Y.vfi : zoom.fin.y) - 10), ((deplacementLibre) ? (((adapt.Y.t) ? zoom.fin.y : adapt.Y.vfo) + 1) : 0)), (deplacementLibre) ? Math.round(zoom.depart.y + Math.abs(delta.top)) : taille.hauteur - 11) + taille.hauteur) % taille.hauteur;
+	if(canvasHTML.clientWidth <= canvasHTML.clientHeight) zoom.depart.y = (Math.min(Math.max(Math.min(Math.round(zoom.depart.y - delta.top), ((adapt.Y.t) ? adapt.Y.vfi : zoom.fin.y) - 10), ((deplacementLibre) ? (((adapt.Y.t) ? zoom.fin.y : adapt.Y.vfo) + 1) : 0)), (deplacementLibre) ? Math.round(zoom.depart.y + Math.abs(delta.top)) : taille.hauteur - 11) + taille.hauteur) % taille.hauteur;
 	
 	adapt = zoomAdapt();
 	
-	zoom.fin.x = (Math.min(Math.max(Math.round(zoom.fin.x + delta.right), ((adapt.X.t) ? adapt.X.vdi : zoom.depart.x) + 10), ((deplacementLibre) ? (((adapt.X.t) ? zoom.depart.x : adapt.X.vdo) - 1) : taille.largeur - 1)) + taille.largeur) % taille.largeur;
+	if(canvasHTML.clientWidth >= canvasHTML.clientHeight) zoom.fin.x = (Math.min(Math.max(Math.round(zoom.fin.x + delta.right), ((adapt.X.t) ? adapt.X.vdi : zoom.depart.x) + 10), ((deplacementLibre) ? (((adapt.X.t) ? zoom.depart.x : adapt.X.vdo) - 1) : taille.largeur - 1)) + taille.largeur) % taille.largeur;
 	
-	zoom.fin.y = (Math.min(Math.max(Math.round(zoom.fin.y + delta.bottom), ((adapt.Y.t) ? adapt.Y.vdi : zoom.depart.y) + 10), ((deplacementLibre) ? (((adapt.Y.t) ? zoom.depart.y : adapt.Y.vdo) - 1) : taille.hauteur - 1)) + taille.hauteur) % taille.hauteur;
+	if(canvasHTML.clientWidth <= canvasHTML.clientHeight)zoom.fin.y = (Math.min(Math.max(Math.round(zoom.fin.y + delta.bottom), ((adapt.Y.t) ? adapt.Y.vdi : zoom.depart.y) + 10), ((deplacementLibre) ? (((adapt.Y.t) ? zoom.depart.y : adapt.Y.vdo) - 1) : taille.hauteur - 1)) + taille.hauteur) % taille.hauteur;
 	
-	tailleApparente.largeur = (zoom.depart.x < zoom.fin.x) ? zoom.fin.x - zoom.depart.x + 1 : taille.largeur - zoom.depart.x + zoom.fin.x + 1;
-	tailleApparente.hauteur = (zoom.depart.y < zoom.fin.y) ? zoom.fin.y - zoom.depart.y + 1 : taille.hauteur - zoom.depart.y + zoom.fin.y + 1;
-	taillePixel.x = (taille.largeur < taille.hauteur) ? canvasHTML.clientHeight / tailleApparente.hauteur : canvasHTML.clientWidth / tailleApparente.largeur;
-	taillePixel.y = canvasHTML.clientHeight / tailleApparente.hauteur;
-	
-	var myVH = window.innerHeight / 100;
-	var myVW = window.innerWidth / 100;
-	
-	if (taille.hauteur * taillePixel.x < 90 * myVH) {
-		zoom.fin.y = (zoom.depart.y + taille.hauteur - 1) % taille.hauteur;
-		tailleApparente.hauteur = (zoom.depart.y < zoom.fin.y) ? zoom.fin.y - zoom.depart.y + 1 : taille.hauteur - zoom.depart.y + zoom.fin.y + 1;
-	}
-	if (taille.largeur * taillePixel.x < 90 * myVH) {
-		zoom.fin.x = (zoom.depart.x + taille.largeur - 1) % taille.largeur;
-		tailleApparente.largeur = (zoom.depart.x < zoom.fin.x) ? zoom.fin.x - zoom.depart.x + 1 : taille.largeur - zoom.depart.x + zoom.fin.x + 1;
-	}
-	
-	canvasHTML.style.right = Math.max(45 * myVH - tailleApparente.largeur * taillePixel.x / 2 + 2.5 * myVW, 2.5 * myVW) + 'px';
-	canvasHTML.style.top = Math.max(47.5 * myVH - tailleApparente.hauteur * taillePixel.x / 2, 2.5 * myVH) + 'px';
-	canvasHTML.style.height = Math.min(tailleApparente.hauteur * taillePixel.x, 90 * myVH) + 'px';
-	canvasHTML.style.width = Math.min(tailleApparente.largeur * taillePixel.x, 90 * myVH) + 'px';/**/
-	canvasHTML.width = canvasHTML.clientWidth;
-	canvasHTML.height = canvasHTML.clientHeight;
-	dessinerCanvas();
+	calculerDimension();
 }
 
 document.getElementById('tailleSelecteurBouton').onclick = changerTaille;
@@ -244,7 +232,7 @@ document.getElementById('tailleSelecteurBouton').onclick = changerTaille;
 function setCell(ligne, colonne, mode) {
 	switch (mode) {
 		case 'aleatoire':
-			table[ligne][colonne] = (Math.round(Math.random()) == 0);
+			table[ligne][colonne] = (Math.random() <= 0.3);
 			if(table[ligne][colonne]) nbVivant++;
 			break;
 	
@@ -272,8 +260,7 @@ function setGame(mode = 'aleatoire') {
 			somme[ligne][colonne] = 0;
 		}
 	}
-	canvasHTML.width = canvasHTML.clientWidth;
-	canvasHTML.height = canvasHTML.clientHeight;
+	calculerDimension();
 }
 
 // Ajoute +1 à la somme des voisins de chaque cellule voisine de la cellule indiqué
@@ -335,24 +322,18 @@ function myApp() {
 }
 
 /************* Initialisation *************/
-
-taille.hauteur = 100;
-taille.largeur = 100;
-tailleSelecteurHTML.elements[0].value = taille.hauteur;
-tailleSelecteurHTML.elements[1].value = taille.largeur;
-zoom.depart = {x:0, y:0};
-zoom.fin = {x:taille.largeur - 1, y:taille.hauteur - 1};
-tailleApparente.largeur = (zoom.depart.x < zoom.fin.x) ? zoom.fin.x - zoom.depart.x + 1 : taille.largeur - zoom.depart.x + zoom.fin.x + 1;
-tailleApparente.hauteur = (zoom.depart.y < zoom.fin.y) ? zoom.fin.y - zoom.depart.y + 1 : taille.hauteur - zoom.depart.y + zoom.fin.y + 1;
-
-myAppInterval = setInterval(myApp, 16.67);
-infoStatsHTML.innerHTML = 'Génération 0 : ' + nbVivant + ' Cellule vivante (+0)';
-window.onload = function() {
-	canvasHTML.style.right = '2.5vw';
-	canvasHTML.style.top = '2.5vh';
-	canvasHTML.style.height = '90vh';
-	canvasHTML.style.width = '90vh';
+document.body.onload = function() {
+	taille.hauteur = 100;
+	taille.largeur = 100;
+	tailleSelecteurHTML.elements[0].value = taille.hauteur;
+	tailleSelecteurHTML.elements[1].value = taille.largeur;
+	zoom.depart = {x:0, y:0};
+	zoom.fin = {x:taille.largeur - 1, y:taille.hauteur - 1};
+	
 	setGame();
+
+	myAppInterval = setInterval(myApp, 16.67);
+	infoStatsHTML.innerHTML = 'Génération 0 : ' + nbVivant + ' Cellule vivante (+0)';
 }/**/
 
 /************* Fin Initialisation *********/
@@ -448,8 +429,6 @@ vitesseSelecteur.oninput = function(e){
 }
 
 /****************  Painting options  ***********************/
-var isPainting = false;
-var shiftPressed = false;
 
 //Génération du selecteur
 function selectionPatternFinal(e){
