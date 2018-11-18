@@ -10,7 +10,7 @@ var vitesse = 30;
 var nbGeneration = 0;
 var nbVivant = 0;
 var infoStatsHTML = document.getElementById('infoStats');
-var dessinerCanvasInterval = 0;
+var myAppInterval = 0;
 var tempo = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 var somme = []; 
 var table = []; 
@@ -88,18 +88,18 @@ function dessinerJeu(){
 	
 	//création d'un fond noir
 	canvas.fillStyle = '#000000';
-	canvas.fillRect(0,0,tailleApparente.largeur * taillePixel.x, tailleApparente.hauteur * taillePixel.y);
+	canvas.fillRect(0,0,tailleApparente.largeur * taillePixel.x, tailleApparente.hauteur * taillePixel.x);
 	//canvas.fillRect(0,0,canvasHTML.clientWidth,canvasHTML.clientHeight);
 	
 	//création des cellules vivantes
 	canvas.fillStyle = '#ffffff';
 	for(var ligne = zoom.depart.y, i = 0, hauteur = tailleApparente.hauteur; i < hauteur; ligne = ++ligne % taille.hauteur, i++) {
 		for(var colonne = zoom.depart.x, j = 0, largeur = tailleApparente.largeur; j < largeur; colonne = ++colonne % taille.largeur, j++) {
-			if(table[ligne][colonne]) canvas.fillRect((j) * taillePixel.x, (i) * taillePixel.y, taillePixel.x, taillePixel.y);
+			if(table[ligne][colonne]) canvas.fillRect((j) * taillePixel.x, (i) * taillePixel.x, taillePixel.x, taillePixel.x);
 			if(deplacementLibre && ((ligne == 0 && colonne == zoom.fin.x) || (colonne == 0 && ligne == zoom.fin.y))) {
 				canvas.fillStyle = 'rgba(255,0,0,0.33)';
-				if(ligne == 0) canvas.fillRect(0, i * taillePixel.y - 2, tailleApparente.largeur * taillePixel.x, 4);
-				if(colonne == 0) canvas.fillRect(j * taillePixel.x - 2, 0, 4, tailleApparente.largeur * taillePixel.x);
+				if(ligne == 0) canvas.fillRect(0, i * taillePixel.x - 2, tailleApparente.largeur * taillePixel.x, 2);
+				if(colonne == 0) canvas.fillRect(j * taillePixel.x - 2, 0, 2, tailleApparente.hauteur * taillePixel.x);
 				canvas.fillStyle = '#ffffff';
 			}
 		}
@@ -119,19 +119,16 @@ function dessinerOutil(){
 				var yRel = coordMouse.y + ligne;
 				yRel = (yRel >= taille.hauteur) ? (yRel - taille.hauteur) : (yRel < 0) ? yRel + taille.hauteur : yRel;
 				canvas.fillStyle = (patternActuel[ligne][col]) ? 'rgba(255,0,0,0.9)' : 'rgba(0,0,0,0.9)';
-				canvas.fillRect(((xRel - zoom.depart.x + taille.largeur) % taille.largeur) * taillePixel.x, ((yRel - zoom.depart.y + taille.hauteur) % taille.hauteur) * taillePixel.y, taillePixel.x, taillePixel.y);
+				canvas.fillRect(((xRel - zoom.depart.x + taille.largeur) % taille.largeur) * taillePixel.x, ((yRel - zoom.depart.y + taille.hauteur) % taille.hauteur) * taillePixel.x, taillePixel.x, taillePixel.x);
 			}
 		}
 	}
-	else canvas.fillRect(((coordMouse.x - zoom.depart.x + taille.largeur) % taille.largeur) * taillePixel.x, ((coordMouse.y - zoom.depart.y + taille.hauteur) % taille.hauteur) * taillePixel.y, taillePixel.x, taillePixel.y);
+	else canvas.fillRect(((coordMouse.x - zoom.depart.x + taille.largeur) % taille.largeur) * taillePixel.x, ((coordMouse.y - zoom.depart.y + taille.hauteur) % taille.hauteur) * taillePixel.x, taillePixel.x, taillePixel.x);
 }
 
 function dessinerCanvas() {
 	taillePixel = {	x:(canvasHTML.clientWidth / tailleApparente.largeur), 
 						y:(canvasHTML.clientHeight / tailleApparente.hauteur)}
-	
-	zoomViaClavier();
-	deplacementCanvasPre();
 	
 	dessinerJeu();
 	
@@ -151,11 +148,11 @@ window.onresize = function(){
 function positionSourieCanvas(e){
     var x = e.offsetX;
     var y = e.offsetY;
-	//tailleApparente = {hauteur:(zoom.fin.y - zoom.depart.y), largeur:(zoom.fin.x - zoom.depart.x)};
+	/*tailleApparente = {hauteur:(zoom.fin.y - zoom.depart.y), largeur:(zoom.fin.x - zoom.depart.x)};
 	taillePixel.x = canvasHTML.clientWidth / tailleApparente.largeur;
-	taillePixel.y = canvasHTML.clientHeight / tailleApparente.hauteur;
+	taillePixel.y = canvasHTML.clientHeight / tailleApparente.hauteur;/**/
 	coordMouse.x = (zoom.depart.x + Math.floor(x / taillePixel.x)) % taille.largeur;
-	coordMouse.y = (zoom.depart.y + Math.floor(y / taillePixel.y)) % taille.hauteur;
+	coordMouse.y = (zoom.depart.y + Math.floor(y / taillePixel.x)) % taille.hauteur;
 }
 
 function changerTaille() {
@@ -167,7 +164,7 @@ function changerTaille() {
 }
 
 function zoomViaClavier() {
-	if (toucheEnfonce && (toucheEnfonce[107] || toucheEnfonce[109])) {
+	if (toucheEnfonce[107] || toucheEnfonce[109]) {
 		var e = {};
 		e.offsetX = canvasHTML.width / 2;
 		e.offsetY = canvasHTML.height / 2;
@@ -218,8 +215,28 @@ function zooming(e) {
 	
 	tailleApparente.largeur = (zoom.depart.x < zoom.fin.x) ? zoom.fin.x - zoom.depart.x + 1 : taille.largeur - zoom.depart.x + zoom.fin.x + 1;
 	tailleApparente.hauteur = (zoom.depart.y < zoom.fin.y) ? zoom.fin.y - zoom.depart.y + 1 : taille.hauteur - zoom.depart.y + zoom.fin.y + 1;
-	taillePixel.x = canvasHTML.clientWidth / tailleApparente.largeur;
+	taillePixel.x = (taille.largeur < taille.hauteur) ? canvasHTML.clientHeight / tailleApparente.hauteur : canvasHTML.clientWidth / tailleApparente.largeur;
 	taillePixel.y = canvasHTML.clientHeight / tailleApparente.hauteur;
+	
+	var myVH = window.innerHeight / 100;
+	var myVW = window.innerWidth / 100;
+	
+	if (taille.hauteur * taillePixel.x < 90 * myVH) {
+		zoom.fin.y = (zoom.depart.y + taille.hauteur - 1) % taille.hauteur;
+		tailleApparente.hauteur = (zoom.depart.y < zoom.fin.y) ? zoom.fin.y - zoom.depart.y + 1 : taille.hauteur - zoom.depart.y + zoom.fin.y + 1;
+	}
+	if (taille.largeur * taillePixel.x < 90 * myVH) {
+		zoom.fin.x = (zoom.depart.x + taille.largeur - 1) % taille.largeur;
+		tailleApparente.largeur = (zoom.depart.x < zoom.fin.x) ? zoom.fin.x - zoom.depart.x + 1 : taille.largeur - zoom.depart.x + zoom.fin.x + 1;
+	}
+	
+	canvasHTML.style.right = Math.max(45 * myVH - tailleApparente.largeur * taillePixel.x / 2 + 2.5 * myVW, 2.5 * myVW) + 'px';
+	canvasHTML.style.top = Math.max(47.5 * myVH - tailleApparente.hauteur * taillePixel.x / 2, 2.5 * myVH) + 'px';
+	canvasHTML.style.height = Math.min(tailleApparente.hauteur * taillePixel.x, 90 * myVH) + 'px';
+	canvasHTML.style.width = Math.min(tailleApparente.largeur * taillePixel.x, 90 * myVH) + 'px';/**/
+	canvasHTML.width = canvasHTML.clientWidth;
+	canvasHTML.height = canvasHTML.clientHeight;
+	dessinerCanvas();
 }
 
 document.getElementById('tailleSelecteurBouton').onclick = changerTaille;
@@ -309,6 +326,14 @@ function nouveauCycle() {
 	infoStatsHTML.innerHTML = 'Génération ' + nbGeneration + ' : ' + nbVivant + ' Cellule vivante (' + ((nbVivant >= nbVivantPasse) ? '+' : '') + (nbVivant - nbVivantPasse) + ')';
 }
 
+function myApp() {
+	if(toucheEnfonce) {
+		zoomViaClavier();
+		deplacementCanvasPre();
+	}
+	dessinerCanvas();
+}
+
 /************* Initialisation *************/
 
 taille.hauteur = 100;
@@ -320,9 +345,15 @@ zoom.fin = {x:taille.largeur - 1, y:taille.hauteur - 1};
 tailleApparente.largeur = (zoom.depart.x < zoom.fin.x) ? zoom.fin.x - zoom.depart.x + 1 : taille.largeur - zoom.depart.x + zoom.fin.x + 1;
 tailleApparente.hauteur = (zoom.depart.y < zoom.fin.y) ? zoom.fin.y - zoom.depart.y + 1 : taille.hauteur - zoom.depart.y + zoom.fin.y + 1;
 
-setGame();
-dessinerCanvasInterval = setInterval(dessinerCanvas, 16.67);
+myAppInterval = setInterval(myApp, 16.67);
 infoStatsHTML.innerHTML = 'Génération 0 : ' + nbVivant + ' Cellule vivante (+0)';
+window.onload = function() {
+	canvasHTML.style.right = '2.5vw';
+	canvasHTML.style.top = '2.5vh';
+	canvasHTML.style.height = '90vh';
+	canvasHTML.style.width = '90vh';
+	setGame();
+}/**/
 
 /************* Fin Initialisation *********/
 
@@ -337,16 +368,16 @@ launcher.onclick = function(){
 		launcher.innerHTML = 'Play';
 		afficheTest.innerHTML = '';
 		if(vitesse < 16.67) {
-			clearInterval(dessinerCanvasInterval);
-			dessinerCanvasInterval = setInterval(dessinerCanvas, 16.67);
+			clearInterval(myAppInterval);
+			myAppInterval = setInterval(myApp, 16.67);
 		}
 	}
 	else {
 		isAlive = setInterval(nouveauCycle, vitesse);
 		launcher.innerHTML = 'Pause';
 		if(vitesse < 16.67) {
-			clearInterval(dessinerCanvasInterval);
-			dessinerCanvasInterval = setInterval(dessinerCanvas, vitesse);
+			clearInterval(myAppInterval);
+			myAppInterval = setInterval(myApp, vitesse);
 		}
 	}
 }
@@ -362,8 +393,8 @@ document.getElementById("nuke").onclick = function(){
 		launcher.innerHTML = 'Play';
 		afficheTest.innerHTML = '';
 		if(vitesse < 16.67) {
-			clearInterval(dessinerCanvasInterval);
-			dessinerCanvasInterval = setInterval(dessinerCanvas, 16.67);
+			clearInterval(myAppInterval);
+			myAppInterval = setInterval(myApp, 16.67);
 		}
 	}
 	nbGeneration = 0;
@@ -383,12 +414,14 @@ document.getElementById("deplacementLibre").onclick = function(){
 	if (zoom.depart.x + tailleApparente.largeur >= taille.largeur) {
 		var delta = zoom.depart.x + tailleApparente.largeur - taille.largeur;
 		if(delta > tailleApparente.largeur / 2) delta = -1 * (tailleApparente.largeur - delta);
+		
 		zoom.depart.x = (zoom.depart.x - delta + taille.largeur) % taille.largeur;
 		zoom.fin.x = (zoom.fin.x - delta + taille.largeur) % taille.largeur;
 	}
 	if (zoom.depart.y + tailleApparente.hauteur >= taille.hauteur) {
 		var delta = zoom.depart.y + tailleApparente.hauteur - taille.hauteur;
 		if(delta > tailleApparente.hauteur / 2) delta = -1 * (tailleApparente.hauteur - delta);
+		
 		zoom.depart.y = (zoom.depart.y - delta + taille.hauteur) % taille.hauteur;
 		zoom.fin.y = (zoom.fin.y - delta + taille.hauteur) % taille.hauteur;
 	}
@@ -404,12 +437,12 @@ vitesseSelecteur.oninput = function(e){
 		clearInterval(isAlive);
 		isAlive = setInterval(nouveauCycle, vitesse);
 		if(vitesse < 16.67) {
-			clearInterval(dessinerCanvasInterval);
-			dessinerCanvasInterval = setInterval(dessinerCanvas, vitesse);
+			clearInterval(myAppInterval);
+			myAppInterval = setInterval(myApp, vitesse);
 		}
 		else {
-			clearInterval(dessinerCanvasInterval);
-			dessinerCanvasInterval = setInterval(dessinerCanvas, 16.67);
+			clearInterval(myAppInterval);
+			myAppInterval = setInterval(myApp, 16.67);
 		}
 	}
 }

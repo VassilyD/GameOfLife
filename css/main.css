@@ -1,44 +1,13 @@
-#grille {
-	padding: 0;
-	margin: 0;
-	width: 100%;
-	height: 100%;
-	border-collapse: collapse;
-}
-
-td {
-	background-color: black;
-	padding: 0;
-	margin: 0;
-}
-
 #menu {
 	position: fixed;
 	top: 5vh;
 	left: 5vh;
 }
 
-#container {
-	position: fixed;
-	top: 10vh;
-	left: 2.5vw;
-	width: 90vh;
-	height: 90vh;
-	overflow: auto;
-}
-
-.alive {
-	background-color: white;
-}
-
-#grille tr td:hover {
-	background-color: red;
-}
-
 #gameOfLifeCanvas {
 	position: fixed;
-	top: 2.5vh;
+	/*top: 2.5vh;
 	right: 2.5vw;
 	width: 90vh;
-	height: 90vh;
+	height: 90vh;/**/
 }
