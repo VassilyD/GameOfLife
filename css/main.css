@@ -5,9 +5,18 @@
 }
 
 #gameOfLifeCanvas {
-	position: fixed;
+	position: absolute;
 	/*top: 2.5vh;
 	right: 2.5vw;
 	width: 90vh;
 	height: 90vh;/**/
 }
+
+#conteneurJeu {
+	position: fixed;
+	top: 2.5vh;
+	right: 2.5vw;
+	width: 90vh;
+	height: 90vh;/**/
+}
+
