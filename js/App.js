@@ -1,96 +1,100 @@
 
-
-/************ Gestion de l'affichage du canvas ******************/
-
-/************ Fin de l'affichage du canvas ******************/
-
-function changerTaille() {
-	taille.hauteur = tailleSelecteurHTML.elements[0].value * 1;
-	taille.largeur = tailleSelecteurHTML.elements[1].value * 1;
-	canvasHTML.width = canvasHTML.clientWidth;
-	canvasHTML.height = canvasHTML.clientHeight;
-	setGame();
-}
-
-function zoomViaClavier() {
-	if (toucheEnfonce[107] || toucheEnfonce[109]) {
-		var e = {};
-		e.offsetX = canvasHTML.width / 2;
-		e.offsetY = canvasHTML.height / 2;
-		e.deltaY = (toucheEnfonce[107]) ? -1 : (toucheEnfonce[109]) ? 1 : 0;
-		zooming(e);
-	}
-}
-
 function myApp() {
-	if(toucheEnfonce) {
-		zoomViaClavier();
-		deplacementCanvasPre();
+	if(isToucheEnfonce) {
+		canvas.zoomViaClavier();
+		canvas.deplacementCanvasPre();
 	}
+	
 	canvas.dessinerCanvas();
+	
+	infoStatsHTML.innerHTML = 'Génération ' + jeu.nbGeneration + ' : ' + jeu.nbVivant + ' Cellule vivante (' + ((jeu.nbVivantVariation >= 0) ? '+' : '') + (jeu.nbVivantVariation) + ')';
+	afficheTestHTML.innerHTML = (jeu.isAlive) ? jeu.fps + ' FPS' : '';
 }
 
 /************* Initialisation *************/
 window.onload = function() {
-	taille.hauteur = 100;
-	taille.largeur = 100;
-	tailleSelecteurHTML.elements[0].value = taille.hauteur;
-	tailleSelecteurHTML.elements[1].value = taille.largeur;
-	canvasHTML.style.width = '90vh';
-	canvasHTML.style.height = '90vh';
-	canvasHTML.width = canvasHTML.clientWidth;
-	canvasHTML.height = canvasHTML.clientHeight;
+	canvasHTML = document.getElementById('gameOfLifeCanvas');
+	selectPatternHTML = document.getElementById('patternSelecteur');
+	tailleSelecteurHTML = document.getElementById('tailleSelecteur');
+	vitesseSelecteurHTML = document.getElementById('vitesseSelecteur');
+	infoStatsHTML = document.getElementById('infoStats');
+	afficheTestHTML = document.getElementById("fill");
+	launcherHTML = document.getElementById("launcher");
 	
-	setGame();
+	tailleSelecteurHTML.elements[0].value = 100;
+	tailleSelecteurHTML.elements[1].value = 100;
+	
+	jeu = new JeuDeLaVie(100, 100);
+	canvas = new Canvas(canvasHTML, jeu);
 
 	myAppInterval = setInterval(myApp, 16.67);
-	infoStatsHTML.innerHTML = 'Génération 0 : ' + nbVivant + ' Cellule vivante (+0)';
-}/**/
+	infoStatsHTML.innerHTML = 'Génération 0 : ' + jeu.nbVivant + ' Cellule vivante';
+		
+	window.onresize = function() {canvas.calculerDimension()};
 
-/************* Fin Initialisation *********/
+	document.getElementById('tailleSelecteurBouton').onclick = changerTaille;
 
-/****************  Painting options  ***********************/
+	launcherHTML.onclick = function() {
+		jeu.lancer();
+		launcherHTML.innerHTML = (jeu.isAlive) ? 'Pause' : 'Play';
+		//afficheTestHTML.innerHTML = (jeu.isAlive) ? jeu.fps + ' FPS' : '';
+	}
 
-//Génération du selecteur
-function selectionPatternFinal(e){
-	var selectLVL1 = document.getElementById('patternsLVL1');
-	var selectLVL2 = document.getElementById('patternsLVL2');
-	patternActuel = patternList[selectLVL1.value][selectLVL2.value].slice();
-}
+	document.getElementById("nuke").onclick = function() {
+		jeu.reset('vide');
+		launcherHTML.innerHTML = 'Play';
+		infoStatsHTML.innerHTML = 'Génération 0 : 0 Cellule vivante';
+		//afficheTestHTML.innerHTML = '';
+	}
 
-function selectionSousPattern(e) {
-	if(choixTmp = document.getElementById('patternsLVL2')) selectPatternHTML.removeChild(choixTmp);
-	
-	var selectLVL1 = document.getElementById('patternsLVL1');
+	document.getElementById("respawn").onclick = function() {
+		jeu.reset('aleatoire');
+		launcherHTML.innerHTML = 'Play';
+		infoStatsHTML.innerHTML = 'Génération 0 : ' + jeu.nbVivant + ' Cellule vivante';
+		//afficheTestHTML.innerHTML = '';
+	}
+
+	document.getElementById("deplacementLibre").onclick = function() {canvas.deplacement()};
+
+	document.getElementById("onePass").onclick = function() {
+		jeu.nouveauCycle();
+		infoStatsHTML.innerHTML = 'Génération ' + jeu.nbGeneration + ' : ' + jeu.nbVivant + ' Cellule vivante (' + ((jeu.nbVivantVariation >= 0) ? '+' : '') + (jeu.nbVivantVariation) + ')';
+	};
+
+	vitesseSelecteurHTML.oninput = changerVitesse;
+
+
+	window.addEventListener('keydown', function (e) {
+		var keyCode = e.which || e.keyCode;
+		if(e.key == 'Shift') shiftPressed = true;
+		//e.preventDefault();
+		toucheEnfonce = (toucheEnfonce || []);
+		toucheEnfonce[keyCode] = (e.type == "keydown");
+		isToucheEnfonce = true;
+	})
+	window.addEventListener('keyup', function (e) {
+		var keyCode = e.which || e.keyCode;
+		if(e.key == 'Shift') shiftPressed = false;
+		toucheEnfonce[keyCode] = (e.type == "keydown");
+		isToucheEnfonce = false;
+		for(touche in toucheEnfonce) isToucheEnfonce = isToucheEnfonce || toucheEnfonce[touche];
+	})
+		
 	var selecteurPatternTmp = document.createElement('select');
-	selecteurPatternTmp.name = 'patternsLVL2';
-	selecteurPatternTmp.id = 'patternsLVL2';
-	selecteurPatternTmp.setAttribute('oninput', "selectionPatternFinal(event)");
+	selecteurPatternTmp.name = 'patternsLVL1';
+	selecteurPatternTmp.id = 'patternsLVL1';
+	selecteurPatternTmp.setAttribute('oninput', "selectionSousPattern(event)");
 	var choixTmp = document.createElement('option');
 	choixTmp.value = '';
-	choixTmp.innerHTML = 'Selectionner patron';
+	choixTmp.innerHTML = 'Selectionner banque';
 	selecteurPatternTmp.appendChild(choixTmp);
-	for(pattern in patternList[selectLVL1.value]) {
+	for(pattern in patternList) {
 		var choixTmp = document.createElement('option');
 		choixTmp.value = pattern;
 		choixTmp.innerHTML = pattern;
 		selecteurPatternTmp.appendChild(choixTmp);
 	}
 	selectPatternHTML.appendChild(selecteurPatternTmp);
-}
 
-var selecteurPatternTmp = document.createElement('select');
-selecteurPatternTmp.name = 'patternsLVL1';
-selecteurPatternTmp.id = 'patternsLVL1';
-selecteurPatternTmp.setAttribute('oninput', "selectionSousPattern(event)");
-var choixTmp = document.createElement('option');
-choixTmp.value = '';
-choixTmp.innerHTML = 'Selectionner banque';
-selecteurPatternTmp.appendChild(choixTmp);
-for(pattern in patternList) {
-	var choixTmp = document.createElement('option');
-	choixTmp.value = pattern;
-	choixTmp.innerHTML = pattern;
-	selecteurPatternTmp.appendChild(choixTmp);
 }
-selectPatternHTML.appendChild(selecteurPatternTmp);
+/************* Fin Initialisation *********/

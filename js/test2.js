@@ -20,6 +20,7 @@ var tailleApparente = {hauteur:0, largeur:0};
 var zoom = {depart:{x:0, y:0}, fin:{x:0, y:0}, zoom:0};
 var deplacementInterval = 0;
 var toucheEnfonce = [];
+var isToucheEnfonce = false;
 var deplacementLibre = false;
 var isPainting = false;
 var shiftPressed = false;
@@ -355,7 +356,7 @@ function nouveauCycle() {
 }
 
 function myApp() {
-	if(toucheEnfonce) {
+	if(isToucheEnfonce) {
 		zoomViaClavier();
 		deplacementCanvasPre();
 	}
@@ -591,7 +592,7 @@ function deplacementCanvasPre() {
     if (toucheEnfonce && toucheEnfonce[39]) {direction[0] = 1; }
     if (toucheEnfonce && toucheEnfonce[38]) {direction[1] = -1; }
     if (toucheEnfonce && toucheEnfonce[40]) {direction[1] = 1; }
-	deplacementCanvas(direction);
+	if(direction[0] != 0 || direction[1] != 0) deplacementCanvas(direction);
 }
 
 //Active certain booléen en fonction des touche enfoncé
@@ -621,11 +622,13 @@ window.addEventListener('keydown', function (e) {
 	var keyCode = e.which || e.keyCode;
 	if(e.key == 'Shift') shiftPressed = true;
 	//e.preventDefault();
+	isToucheEnfonce = true;
 	toucheEnfonce = (toucheEnfonce || []);
 	toucheEnfonce[keyCode] = (e.type == "keydown");
 })
 window.addEventListener('keyup', function (e) {
 	var keyCode = e.which || e.keyCode;
 	if(e.key == 'Shift') shiftPressed = false;
+	isToucheEnfonce = false;
 	toucheEnfonce[keyCode] = (e.type == "keydown");
 })

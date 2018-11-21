@@ -1,17 +1,75 @@
-var canvasHTML = document.getElementById('gameOfLifeCanvas');
-var selectPatternHTML = document.getElementById('patternSelecteur');
-var tailleEcran = [window.innerWidth, window.innerHeight];
-var tailleSelecteurHTML = document.getElementById('tailleSelecteur');
-var vitesseSelecteur = document.getElementById('vitesseSelecteur');
-var infoStatsHTML = document.getElementById('infoStats');
-var myAppInterval = 0;
-var tempo = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-var deplacementInterval = 0;
-var toucheEnfonce = [];
-var deplacementLibre = false;
-var isPainting = false;
-var shiftPressed = false;
-var patternActuel;
-var afficheTest = document.getElementById("fill");
-var launcher = document.getElementById("launcher");
-var jeu, canvas;
+let canvasHTML;
+let selectPatternHTML;
+let tailleSelecteurHTML;
+let vitesseSelecteurHTML;
+let infoStatsHTML;
+let afficheTestHTML;
+let launcherHTML;
+
+let myAppInterval = 0;
+let deplacementInterval = 0;
+let toucheEnfonce = [];
+let isToucheEnfonce = false;
+let isPainting = false;
+let shiftPressed = false;
+let patternActuel;
+let jeu, canvas;
+
+
+var testPattern = [[false, true, false], [false, false, true], [true, true, true]];
+var patternList = {	marcheur:{	
+					NE:[[true, true, true], [false, false, true], [false, true, false]], 
+					SE:[[false, true, false], [false, false, true], [true, true, true]], 
+					SW:[[false, true, false], [true, false, false], [true, true, true]], 
+					NW:[[true, true, true], [true, false, false], [false, true, false]]
+				},
+				oscillateur:{
+					ligne:[[true, true, true]],
+					grenouille:[[false, true, true, true], [true, true, true, false]]
+				},
+				canon:{
+					gosperGliderGunSE:[
+						[false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false],
+						[false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, true, false, false, false, false, false, false, false, false, false, false, false],
+						[false, false, false, false, false, false, false, false, false, false, false, false, true, true, false, false, false, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, true, true],
+						[false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, true, false, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, true, true],
+						[true, true, false, false, false, false, false, false, false, false, true, false, false, false, false, false, true, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false],
+						[true, true, false, false, false, false, false, false, false, false, true, false, false, false, true, false, true, true, false, false, false, false, true, false, true, false, false, false, false, false, false, false, false, false, false, false],
+						[false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, true, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false],
+						[false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false],
+						[false, false, false, false, false, false, false, false, false, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]]		
+				},
+				generateur:{
+					zeroNW:[
+						[false, false, false, false, false, false, true, false],
+						[false, false, false, false, true, false, true, true],
+						[false, false, false, false, true, false, true, false],
+						[false, false, false, false, true, false, false, false],
+						[false, false, true, false, false, false, false, false],
+						[true, false, true, false, false, false, false, false],],
+					unNW:[
+						[true, true, true, false, true],
+						[true, false, false, false, false],
+						[false, false, false, true, true],
+						[false, true, true, false, true],
+						[true, false, true, false, true]],
+					deuxNSE:[[true, true, true, true, true, true, true, true, false, true, true, true, true, true, false, false, false, true, true, true, false, false, false, false, false, false, true, true, true, true, true, true, true, false, true, true, true, true, true]]
+				},
+				block:{
+					carre:[[true, true], [true, true]],
+					tube:[
+						[false, true, false], 
+						[true, false, true], 
+						[false, true, false]],
+					pecheur:[
+						[true, true, false, false], 
+						[true, false, true, false], 
+						[false, false, true, false], 
+						[false, false, true, true]],
+					python:[
+						[false, false, false, true, true], 
+						[true, false, true, false, true], 
+						[true, true, false, false, false]]
+				}
+};
+patternActuel = testPattern.slice();

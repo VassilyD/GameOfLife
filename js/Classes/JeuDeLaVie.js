@@ -7,8 +7,11 @@ class JeuDeLaVie {
 		this._vitesse = 30;
 		this._nbGeneration = 0;
 		this._nbVivant = 0;
+		this._nbVivantVariation = 0;
 		this._interval = 0;
 		this._isAlive = false;
+		this._fps = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+		
 		this.setJeu(largeur, hauteur);
 	}
 	
@@ -25,14 +28,31 @@ class JeuDeLaVie {
 	get nbGeneration() {return this._nbGeneration}
 		
 	get nbVivant() {return this._nbVivant}
+		
+	get nbVivantVariation() {return this._nbVivantVariation}
 	
 	get isAlive() {return this._isAlive}
 	
+	get fps() {
+		var fps = 0;
+		var j =  0;
+		for(var i = 1; i < 11; i++) {
+			if(this._fps[i-1] != 0) {
+				fps += (this._fps[i] - this._fps[i-1]);
+				j++;
+			}
+		}
+		if(j != 0) fps /= j;
+		return (Math.floor(100000 / fps) / 100);
+	}
+	
 	set vitesse(val) {
-		if(val > 1 && val < 250) this._vitesse = val;
-		if(this._isAlive) {
-			this.lancer();
-			this.lancer();
+		if(val > 1 && val < 250) {
+			this._vitesse = val;
+			if(this._isAlive) {
+				this.lancer();
+				this.lancer();
+			}
 		}
 	}
 	
@@ -52,10 +72,17 @@ class JeuDeLaVie {
 		if(val > 0) this._nbVivant = val;
 	}
 
+	
+	
 	setCell(ligne, colonne, etat) {
 		etat = !!etat;
-		if(ligne >= 0 && ligne < this._hauteur && colonne >= 0 && colonne < this._largeur)
+		if(ligne >= 0 && ligne < this._hauteur && colonne >= 0 && colonne < this._largeur) {
+			if(etat && !this._grille[ligne][colonne]) {
+				this._nbVivant++;
+				this._nbVivantVariation++;
+			}
 			this._grille[ligne][colonne] = etat;
+		}
 	}
 	
 	setCellInit(ligne, colonne, mode) {
@@ -101,6 +128,7 @@ class JeuDeLaVie {
 		if(mode != 'extension') {
 			this._nbGeneration = 0;
 			this._nbVivant = 0;
+			this._nbVivantVariation = 0;
 		}
 		this.setGrille(mode);
 	}
@@ -121,13 +149,13 @@ class JeuDeLaVie {
 	}
 
 	nouveauCycle() {
-		var nbVivantPasse = 0;
+		var nbVivantPasse = this._nbVivant;
 		for (var ligne = 0; ligne < this._hauteur; ligne++) {
 			for (var colonne = 0; colonne < this._largeur; colonne++) {
 				//si la cellule est vivante, ajouter +1 à la somme des voisins de chaque cellule voisine
 				if(this._grille[ligne][colonne]) {
 					this.ajouterVoisin(ligne, colonne);
-					nbVivantPasse++;
+					//nbVivantPasse++;
 				}
 			}
 		}
@@ -145,13 +173,17 @@ class JeuDeLaVie {
 			}
 		}
 		
+		this._fps.push(Date.now());
+		this._fps.shift();
 		this._nbGeneration++;
+		this._nbVivantVariation = this._nbVivant - nbVivantPasse;
 	}
 
 	lancer() {
 		if(this._isAlive) {
 			clearInterval(this._interval);
 			this._isAlive = false;
+			for(var i = 0; i < 10; i++) this._fps[i] = 0;
 		}
 		else {
 			var t = this;
