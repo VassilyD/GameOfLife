@@ -245,6 +245,8 @@ function zooming(e) {
 		left:deltaWheel * ((!deplacementLibre && deltaWheel == 1 && deltaRatio * (1 - coordMouseRatio.x) >= taille.largeur - 1 - zoom.fin.x) ? deltaRatio * 2 + zoom.fin.x - (taille.largeur - 1) : deltaRatio * (1 + coordMouseRatio.x)),
 		top:deltaWheel * ((!deplacementLibre && deltaWheel == 1 && deltaRatio * (1 - coordMouseRatio.y) >= taille.hauteur - 1 - zoom.fin.y) ? deltaRatio * 2 + zoom.fin.y - (taille.hauteur - 1) : deltaRatio * (1 + coordMouseRatio.y))};
 	
+	zoom.zoom = Math.min(Math.max(zoom.zoom + deltaWheel * 2 * deltaRatio, 9), Math.max(taille.largeur - 1, taille.hauteur - 1));
+	
 	// 1) Application du delta
 	// 2) Empêche un zoom plus fort que 10 cellule de côté
 	// 3) Empêche de sortir des limites de la grille   !deplacementLibre
@@ -255,7 +257,6 @@ function zooming(e) {
 	
 	if(!(tailleApparente.hauteur == taille.hauteur && tailleApparente.hauteur < tailleApparente.largeur)) zoom.depart.y = Math.round(Math.min(Math.max(Math.min(zoom.depart.y - delta.top, ((adapt.Y.t) ? adapt.Y.vfi : zoom.fin.y) - 9), ((deplacementLibre) ? (((adapt.Y.t) ? zoom.fin.y : adapt.Y.vfo) + 1) : 0)), (deplacementLibre) ? zoom.depart.y + Math.abs(delta.top) : taille.hauteur - 10) + taille.hauteur) % taille.hauteur;
 	
-	zoom.zoom = Math.min(Math.max(zoom.zoom + deltaWheel * 2 * deltaRatio, 9), Math.max(taille.largeur - 1, taille.hauteur - 1));
 	zoom.fin.x = (zoom.depart.x + Math.min(zoom.zoom, taille.largeur - 1)) % taille.largeur;
 	zoom.fin.y = (zoom.depart.y + Math.min(zoom.zoom, taille.hauteur - 1)) % taille.hauteur;
 	
@@ -563,7 +564,7 @@ function paintingLeave() {
 }
 
 function deplacementCanvas(direction) {
-	delta = {x:Math.max(1, Math.round(20 / taillePixel)), y:Math.max(1, Math.round(20 / taillePixel))};
+	delta = {x:Math.max(1, Math.round(tailleApparente.largeur / 75)), y:Math.max(1, Math.round(tailleApparente.hauteur / 75))};
 	if(direction[0] != 0) {
 		if(!deplacementLibre) {
 			zoom.depart.x = Math.min(Math.max(zoom.depart.x + direction[0] * delta.x, 0),  taille.largeur - tailleApparente.largeur);

@@ -1,16 +1,12 @@
 class Canvas {
 	constructor(canvasHTML, jeu) {
 		this._canvasHTML = canvasHTML;
-		this._canvasHTML.style.height = window.innerHeight * 0.9;
-		this._canvasHTML.style.width = window.innerHeight * 0.9;
-		this._canvasHTML.style.top = window.innerHeight * 0.025;
-		this._canvasHTML.style.right = window.innerWidth * 0.025;
 		this._canvas = this._canvasHTML.getContext('2d');
 		this._jeu = jeu;
 		this._taillePixel = 1;
 		this._hauteur = jeu.hauteur;
 		this._largeur = jeu.largeur
-		this._zoom = {top:0, left:0, right:this._largeur - 1, bottom:this._hauteur - 1};
+		this._zoom = {top:0, left:0, right:this._largeur - 1, bottom:this._hauteur - 1, zoom:Math.max(this._largeur - 1, this._hauteur - 1)};
 		this._coordMouse = {x:0, y:0};
 		this._mouseOver = false;
 		this._canvasHTML.onmousemove = function(event) {this.painting(event)};
@@ -19,6 +15,8 @@ class Canvas {
 		this._canvasHTML.onmouseleave = function(event) {this.paintingLeave(event)};
 		this._canvasHTML.onmouseenter = function(event) {this.paintingPre(event)};
 		this._canvasHTML.onwheel = function(event) {this.zooming(event)};
+		
+		this.calculerDimension();
 	}
 	// Affiche la grille de cellule
 	dessinerJeu(){
@@ -31,8 +29,8 @@ class Canvas {
 		
 		//création des cellules vivantes
 		this._canvas.fillStyle = '#ffffff';
-		for(var ligne = this._zoom.top, i = 0; i < this._hauteur; ligne = ++ligne % this._jeu._hauteur, i++) {
-			for(var colonne = zoom.left, j = 0; j < this._largeur; colonne = ++colonne % this._jeu._largeur, j++) {
+		for(var ligne = this._zoom.top, i = 0; i < this._hauteur; ligne = ++ligne % this._jeu.hauteur, i++) {
+			for(var colonne = zoom.left, j = 0; j < this._largeur; colonne = ++colonne % this._jeu.largeur, j++) {
 				if(this._jeu.grille[ligne][colonne]) this._canvas.fillRect((j) * this._taillePixel, (i) * this._taillePixel, this._taillePixel, this._taillePixel);
 				if(deplacementLibre && ((ligne == 0 && colonne == this._zoom.right) || (colonne == 0 && ligne == this._zoom.bottom))) {
 					this._canvas.fillStyle = 'rgba(255,0,0,0.33)';
@@ -80,13 +78,15 @@ class Canvas {
 		
 		ratio = this._largeur / this._hauteur;
 		
-		this._canvasHTML.style.width = Math.min(100 * ((this._largeur >= this._hauteur) ? 1 : ratio), 100) + '%';
-		this._canvasHTML.style.height = Math.min(100 / ((this._largeur <= this._hauteur) ? 1 : ratio), 100) + '%';
-		this._canvasHTML.style.right = ((this._largeur >= this._hauteur) ? 0 : 50 * (1 - ratio)) + '%';
-		this._canvasHTML.style.top = ((this._largeur <= this._hauteur) ? 0 : 50 * (1 - 1 / ratio)) + '%';
+		this._canvasHTML.style.width = Math.min(100 * ratio, 100) + '%';
+		this._canvasHTML.style.height = Math.min(100 / ratio, 100) + '%';
+		this._canvasHTML.style.right = Math.max(50 * (1 - ratio), 0) + '%';
+		this._canvasHTML.style.top = Math.max(50 * (1 - 1 / ratio), 0) + '%';
+		
 		this._canvasHTML.width = this._canvasHTML.clientWidth;
 		this._canvasHTML.height = this._canvasHTML.clientHeight;
 		this._taillePixel = (this._largeur < this._hauteur) ? this._canvasHTML.clientHeight / this._hauteur : this._canvasHTML.clientWidth / this._largeur;
+		
 		this.dessinerCanvas();
 	}
 	
@@ -192,44 +192,37 @@ class Canvas {
 	zooming(e) {
 		positionSourieCanvas(e);
 		
-		var coordMouseRel = {	x:(coordMouse.x - zoom.depart.x + taille.largeur) % taille.largeur, // coordonné du pointeur dans la zone affiché
+		var coordMouseRel = {	x:(coordMouse.x - zoom.depart.x + taille.largeur) % taille.largeur, // coordonné du pointeur dans la zone visible
 								y:(coordMouse.y - zoom.depart.y + taille.hauteur) % taille.hauteur}	
-		var coordMouseRatio = {	x:(coordMouseRel.x / tailleApparente.largeur - 0.5) * 2, // vaut entre -1 et +1 selon si la sourie est plus ou moins à gauche ou plus ou moins à droite
-								y:(coordMouseRel.y / tailleApparente.hauteur - 0.5) * 2} // même chose mais entre le haut et le bas
+		var coordMouseRatio = {	x:(coordMouseRel.x / (tailleApparente.largeur -1 ) - 0.5) * 2, // vaut entre -1 et +1 selon si la sourie est plus ou moins à gauche ou plus ou moins à droite
+								y:(coordMouseRel.y / (tailleApparente.hauteur - 1) - 0.5) * 2} // même chose mais entre le haut et le bas/**/
 								
-		var deltaRatio = {x:Math.max(tailleApparente.largeur * Math.abs(e.deltaY) / 60, 1), y:Math.max(tailleApparente.hauteur * Math.abs(e.deltaY)/ 60, 1)};
+		var deltaRatio = Math.round(Math.max(Math.abs(e.deltaY) * zoom.zoom / 60, 1)); // adapte le delta à la taille de la zone visible
 		
 		var deltaWheel = e.deltaY / Math.abs(e.deltaY); // molette vers l'avant = -1 = zoom in, molette vers l'arrière = 1 = zoom out
 		
-		// pour chaque bord : 	Si zoom in : prendre en compte position curseur pour zoomer en direction de celui ci
-		// 						Sinon, si bord opposé trop proche du bord de la grille alors compenser sur le bord actuel (augmenter le delta)
-		//						Sinon simple delta pour un zoom out loin des bord de la grille ou lorsque le deplacement libre est activé
 		var delta = {	
-			left:((deltaWheel == -1)?( - deltaRatio.x - deltaRatio.x * coordMouseRatio.x) : (!deplacementLibre && deltaRatio.x >= taille.largeur - zoom.fin.x) ? (deltaRatio.x * 2 - taille.largeur + zoom.fin.x +1) : deltaRatio.x),
-			right:((deltaWheel == -1) ? ( - deltaRatio.x + deltaRatio.x * coordMouseRatio.x) : (!deplacementLibre && deltaRatio.x > zoom.depart.x) ? (deltaRatio.x * 2 - zoom.depart.x) : deltaRatio.x),
-			top:((deltaWheel == -1)?( - deltaRatio.y - deltaRatio.y * coordMouseRatio.y) : (!deplacementLibre && deltaRatio.y >= taille.hauteur - zoom.fin.y) ? (deltaRatio.y * 2 - taille.hauteur + zoom.fin.y +1) : deltaRatio.y),
-			bottom:((deltaWheel == -1) ? ( - deltaRatio.y + deltaRatio.y * coordMouseRatio.y) : (!deplacementLibre && deltaRatio.y > zoom.depart.y) ? (deltaRatio.y * 2 - zoom.depart.y) : deltaRatio.y)};
+			left:deltaWheel * ((!deplacementLibre && deltaWheel == 1 && deltaRatio * (1 - coordMouseRatio.x) >= taille.largeur - 1 - zoom.fin.x) ? deltaRatio * 2 + zoom.fin.x - (taille.largeur - 1) : deltaRatio * (1 + coordMouseRatio.x)),
+			top:deltaWheel * ((!deplacementLibre && deltaWheel == 1 && deltaRatio * (1 - coordMouseRatio.y) >= taille.hauteur - 1 - zoom.fin.y) ? deltaRatio * 2 + zoom.fin.y - (taille.hauteur - 1) : deltaRatio * (1 + coordMouseRatio.y))};
+		
+		zoom.zoom = Math.min(Math.max(zoom.zoom + deltaWheel * 2 * deltaRatio, 9), Math.max(taille.largeur - 1, taille.hauteur - 1));
 		
 		// 1) Application du delta
 		// 2) Empêche un zoom plus fort que 10 cellule de côté
 		// 3) Empêche de sortir des limites de la grille   !deplacementLibre
-		function zoomAdapt(){
-			return {X:{t: zoom.fin.x < zoom.depart.x, vfi: zoom.fin.x + taille.largeur, vfo: zoom.fin.x - taille.largeur, vdi: zoom.depart.x - taille.largeur, vdo: zoom.depart.x + taille.largeur}, 
-					Y:{t: zoom.fin.y < zoom.depart.y, vfi: zoom.fin.y + taille.hauteur, vfo: zoom.fin.y - taille.hauteur, vdi: zoom.depart.y - taille.hauteur, vdo: zoom.depart.y + taille.hauteur}};
-		}
-		var adapt = zoomAdapt();
+		var adapt = {	X:{t: zoom.fin.x < zoom.depart.x, vfi: zoom.fin.x + taille.largeur, vfo: zoom.fin.x - taille.largeur}, 
+						Y:{t: zoom.fin.y < zoom.depart.y, vfi: zoom.fin.y + taille.hauteur, vfo: zoom.fin.y - taille.hauteur}};
 		
-		if(canvasHTML.clientWidth >= canvasHTML.clientHeight) zoom.depart.x = (Math.min(Math.max(Math.min(Math.round(zoom.depart.x - delta.left), ((adapt.X.t) ? adapt.X.vfi : zoom.fin.x) - 10), ((deplacementLibre) ? (((adapt.X.t) ? zoom.fin.x : adapt.X.vfo) + 1) : 0)), (deplacementLibre) ? Math.round(zoom.depart.x + Math.abs(delta.left)) : taille.largeur - 11) + taille.largeur) % taille.largeur;
+		if(!(tailleApparente.largeur == taille.largeur && tailleApparente.largeur < tailleApparente.hauteur)) zoom.depart.x = Math.round(Math.min(Math.max(Math.min(zoom.depart.x - delta.left, ((adapt.X.t) ? adapt.X.vfi : zoom.fin.x) - 9), ((deplacementLibre) ? (((adapt.X.t) ? zoom.fin.x : adapt.X.vfo) + 1) : 0)), (deplacementLibre) ? zoom.depart.x + Math.abs(delta.left) : taille.largeur - 10) + taille.largeur) % taille.largeur;
 		
-		if(canvasHTML.clientWidth <= canvasHTML.clientHeight) zoom.depart.y = (Math.min(Math.max(Math.min(Math.round(zoom.depart.y - delta.top), ((adapt.Y.t) ? adapt.Y.vfi : zoom.fin.y) - 10), ((deplacementLibre) ? (((adapt.Y.t) ? zoom.fin.y : adapt.Y.vfo) + 1) : 0)), (deplacementLibre) ? Math.round(zoom.depart.y + Math.abs(delta.top)) : taille.hauteur - 11) + taille.hauteur) % taille.hauteur;
+		if(!(tailleApparente.hauteur == taille.hauteur && tailleApparente.hauteur < tailleApparente.largeur)) zoom.depart.y = Math.round(Math.min(Math.max(Math.min(zoom.depart.y - delta.top, ((adapt.Y.t) ? adapt.Y.vfi : zoom.fin.y) - 9), ((deplacementLibre) ? (((adapt.Y.t) ? zoom.fin.y : adapt.Y.vfo) + 1) : 0)), (deplacementLibre) ? zoom.depart.y + Math.abs(delta.top) : taille.hauteur - 10) + taille.hauteur) % taille.hauteur;
 		
-		adapt = zoomAdapt();
-		
-		if(canvasHTML.clientWidth >= canvasHTML.clientHeight) zoom.fin.x = (Math.min(Math.max(Math.round(zoom.fin.x + delta.right), ((adapt.X.t) ? adapt.X.vdi : zoom.depart.x) + 10), ((deplacementLibre) ? (((adapt.X.t) ? zoom.depart.x : adapt.X.vdo) - 1) : taille.largeur - 1)) + taille.largeur) % taille.largeur;
-		
-		if(canvasHTML.clientWidth <= canvasHTML.clientHeight)zoom.fin.y = (Math.min(Math.max(Math.round(zoom.fin.y + delta.bottom), ((adapt.Y.t) ? adapt.Y.vdi : zoom.depart.y) + 10), ((deplacementLibre) ? (((adapt.Y.t) ? zoom.depart.y : adapt.Y.vdo) - 1) : taille.hauteur - 1)) + taille.hauteur) % taille.hauteur;
+		zoom.fin.x = (zoom.depart.x + Math.min(zoom.zoom, taille.largeur - 1)) % taille.largeur;
+		zoom.fin.y = (zoom.depart.y + Math.min(zoom.zoom, taille.hauteur - 1)) % taille.hauteur;
 		
 		calculerDimension();
+		dessinerCanvas();
+		
 	}
 
 }
