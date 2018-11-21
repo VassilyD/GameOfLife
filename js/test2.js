@@ -17,7 +17,7 @@ var table = [];
 var taille = {hauteur:0, largeur:0};
 var taillePixel = 1;
 var tailleApparente = {hauteur:0, largeur:0};
-var zoom = {depart:{x:0, y:0}, fin:{x:0, y:0}};
+var zoom = {depart:{x:0, y:0}, fin:{x:0, y:0}, zoom:0};
 var deplacementInterval = 0;
 var toucheEnfonce = [];
 var deplacementLibre = false;
@@ -144,15 +144,14 @@ function calculerDimension() {
 	
 	ratio = tailleApparente.largeur / tailleApparente.hauteur;
 	
-	canvasHTML.style.width = Math.min(100 * ((taille.largeur >= taille.hauteur && false) ? 1 : ((tailleApparente.largeur < taille.largeur && false) ? 1 : ratio)), 100) + '%';
-	canvasHTML.style.height = Math.min(100 / ((taille.largeur <= taille.hauteur && false) ? 1 : (tailleApparente.hauteur < taille.hauteur && false) ? 1 : ratio), 100) + '%';
-	canvasHTML.style.right = Math.max(((taille.largeur >= taille.hauteur && false) ? 0 : (tailleApparente.largeur < taille.largeur && false) ? 0 : 50 * (1 - ratio)), 0) + '%';
-	canvasHTML.style.top = Math.max(((taille.largeur <= taille.hauteur && false) ? 0 : (tailleApparente.hauteur < taille.hauteur && false) ? 0 : 50 * (1 - 1 / ratio)), 0) + '%';
+	canvasHTML.style.width = Math.min(100 * ratio, 100) + '%';
+	canvasHTML.style.height = Math.min(100 / ratio, 100) + '%';
+	canvasHTML.style.right = Math.max(50 * (1 - ratio), 0) + '%';
+	canvasHTML.style.top = Math.max(50 * (1 - 1 / ratio), 0) + '%';
 	canvasHTML.width = canvasHTML.clientWidth;
 	canvasHTML.height = canvasHTML.clientHeight;
+	
 	taillePixel = (tailleApparente.largeur < tailleApparente.hauteur) ? canvasHTML.clientHeight / tailleApparente.hauteur : canvasHTML.clientWidth / tailleApparente.largeur;
-	/*tailleApparente.largeur = Math.min(taille.largeur, Math.round(canvasHTML.clientWidth / taillePixel));
-	tailleApparente.hauteur = Math.min(taille.hauteur, Math.round(canvasHTML.clientHeight / taillePixel));*/
 }
 
 window.onresize = function(){
@@ -187,7 +186,8 @@ function zoomViaClavier() {
 	}
 }
 
-function zooming(e) {
+// Obsolète mais gardé au cas ou
+function zoomingOld(e) {
 	positionSourieCanvas(e);
 	
 	var coordMouseRel = {	x:(coordMouse.x - zoom.depart.x + taille.largeur) % taille.largeur, // coordonné du pointeur dans la zone visible
@@ -229,6 +229,41 @@ function zooming(e) {
 	
 }
 
+function zooming(e) {
+	positionSourieCanvas(e);
+	
+	var coordMouseRel = {	x:(coordMouse.x - zoom.depart.x + taille.largeur) % taille.largeur, // coordonné du pointeur dans la zone visible
+							y:(coordMouse.y - zoom.depart.y + taille.hauteur) % taille.hauteur}	
+	var coordMouseRatio = {	x:(coordMouseRel.x / (tailleApparente.largeur -1 ) - 0.5) * 2, // vaut entre -1 et +1 selon si la sourie est plus ou moins à gauche ou plus ou moins à droite
+							y:(coordMouseRel.y / (tailleApparente.hauteur - 1) - 0.5) * 2} // même chose mais entre le haut et le bas/**/
+							
+	var deltaRatio = Math.round(Math.max(Math.abs(e.deltaY) * zoom.zoom / 60, 1)); // adapte le delta à la taille de la zone visible
+	
+	var deltaWheel = e.deltaY / Math.abs(e.deltaY); // molette vers l'avant = -1 = zoom in, molette vers l'arrière = 1 = zoom out
+	
+	var delta = {	
+		left:deltaWheel * ((!deplacementLibre && deltaWheel == 1 && deltaRatio * (1 - coordMouseRatio.x) >= taille.largeur - 1 - zoom.fin.x) ? deltaRatio * 2 + zoom.fin.x - (taille.largeur - 1) : deltaRatio * (1 + coordMouseRatio.x)),
+		top:deltaWheel * ((!deplacementLibre && deltaWheel == 1 && deltaRatio * (1 - coordMouseRatio.y) >= taille.hauteur - 1 - zoom.fin.y) ? deltaRatio * 2 + zoom.fin.y - (taille.hauteur - 1) : deltaRatio * (1 + coordMouseRatio.y))};
+	
+	// 1) Application du delta
+	// 2) Empêche un zoom plus fort que 10 cellule de côté
+	// 3) Empêche de sortir des limites de la grille   !deplacementLibre
+	var adapt = {	X:{t: zoom.fin.x < zoom.depart.x, vfi: zoom.fin.x + taille.largeur, vfo: zoom.fin.x - taille.largeur}, 
+					Y:{t: zoom.fin.y < zoom.depart.y, vfi: zoom.fin.y + taille.hauteur, vfo: zoom.fin.y - taille.hauteur}};
+	
+	if(!(tailleApparente.largeur == taille.largeur && tailleApparente.largeur < tailleApparente.hauteur)) zoom.depart.x = Math.round(Math.min(Math.max(Math.min(zoom.depart.x - delta.left, ((adapt.X.t) ? adapt.X.vfi : zoom.fin.x) - 9), ((deplacementLibre) ? (((adapt.X.t) ? zoom.fin.x : adapt.X.vfo) + 1) : 0)), (deplacementLibre) ? zoom.depart.x + Math.abs(delta.left) : taille.largeur - 10) + taille.largeur) % taille.largeur;
+	
+	if(!(tailleApparente.hauteur == taille.hauteur && tailleApparente.hauteur < tailleApparente.largeur)) zoom.depart.y = Math.round(Math.min(Math.max(Math.min(zoom.depart.y - delta.top, ((adapt.Y.t) ? adapt.Y.vfi : zoom.fin.y) - 9), ((deplacementLibre) ? (((adapt.Y.t) ? zoom.fin.y : adapt.Y.vfo) + 1) : 0)), (deplacementLibre) ? zoom.depart.y + Math.abs(delta.top) : taille.hauteur - 10) + taille.hauteur) % taille.hauteur;
+	
+	zoom.zoom = Math.min(Math.max(zoom.zoom + deltaWheel * 2 * deltaRatio, 9), Math.max(taille.largeur - 1, taille.hauteur - 1));
+	zoom.fin.x = (zoom.depart.x + Math.min(zoom.zoom, taille.largeur - 1)) % taille.largeur;
+	zoom.fin.y = (zoom.depart.y + Math.min(zoom.zoom, taille.hauteur - 1)) % taille.hauteur;
+	
+	calculerDimension();
+	dessinerCanvas();
+	
+}
+
 document.getElementById('tailleSelecteurBouton').onclick = changerTaille;
 
 function setCell(ligne, colonne, mode) {
@@ -264,6 +299,7 @@ function setGame(mode = 'aleatoire') {
 	}
 	zoom.depart = {x:0, y:0};
 	zoom.fin = {x:taille.largeur - 1, y:taille.hauteur - 1};
+	zoom.zoom = Math.max(taille.largeur - 1, taille.hauteur - 1);
 	calculerDimension();
 }
 
