@@ -43,14 +43,14 @@ window.onload = function() {
 	document.getElementById("nuke").onclick = function() {
 		jeu.reset('vide');
 		launcherHTML.innerHTML = 'Play';
-		infoStatsHTML.innerHTML = 'Génération 0 : 0 Cellule vivante';
+		//infoStatsHTML.innerHTML = 'Génération 0 : 0 Cellule vivante';
 		//afficheTestHTML.innerHTML = '';
 	}
 
 	document.getElementById("respawn").onclick = function() {
 		jeu.reset('aleatoire');
 		launcherHTML.innerHTML = 'Play';
-		infoStatsHTML.innerHTML = 'Génération 0 : ' + jeu.nbVivant + ' Cellule vivante';
+		//infoStatsHTML.innerHTML = 'Génération 0 : ' + jeu.nbVivant + ' Cellule vivante';
 		//afficheTestHTML.innerHTML = '';
 	}
 

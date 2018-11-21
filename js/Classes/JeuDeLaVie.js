@@ -77,9 +77,9 @@ class JeuDeLaVie {
 	setCell(ligne, colonne, etat) {
 		etat = !!etat;
 		if(ligne >= 0 && ligne < this._hauteur && colonne >= 0 && colonne < this._largeur) {
-			if(etat && !this._grille[ligne][colonne]) {
-				this._nbVivant++;
-				this._nbVivantVariation++;
+			if(etat != this._grille[ligne][colonne]) {
+				this._nbVivant = (etat) ? ++this._nbVivant : --this._nbVivant;
+				this._nbVivantVariation = (etat) ? ++this._nbVivantVariation : --this._nbVivantVariation;
 			}
 			this._grille[ligne][colonne] = etat;
 		}
