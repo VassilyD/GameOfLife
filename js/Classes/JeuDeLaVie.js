@@ -95,7 +95,7 @@ class JeuDeLaVie {
 		}
 	}
 	
-	setCellInit(ligne, colonne, mode, etatPrecedent = false) {
+	setCellInit(ligne, colonne, mode) {
 		switch (mode) {
 			case 'aleatoire':
 				this._grille[ligne][colonne] = (Math.random() <= ((this.aVoisin(ligne, colonne)) ? 0.3 : 0.005));
@@ -116,15 +116,13 @@ class JeuDeLaVie {
 	}
 
 	setGrille(mode = 'aleatoire') {
-		var etatPrecedent = false;
 		this._grille = [];
 		this._somme = [];
 		for (var ligne = 0, hauteur = this._hauteur; ligne < hauteur; ligne++) {
 			this._grille[ligne] = [];
 			this._somme[ligne] = [];
 			for (var colonne = 0, largeur = this._largeur; colonne < largeur; colonne++) {
-				this.setCellInit(ligne, colonne, mode, etatPrecedent);
-				etatPrecedent = this._grille[ligne][colonne];
+				this.setCellInit(ligne, colonne, mode);
 				this._somme[ligne][colonne] = 0;
 			}
 		}
@@ -217,6 +215,7 @@ class JeuDeLaVie {
 		this._nbVivantHistorique.unshift(this._nbVivant);
 		if(this._nbVivant > this._nbVivantMax) this._nbVivantMax = this._nbVivant;
 		if(estStable && this._isAlive) this.lancer();
+		canvas.dessinerJeu();
 	}
 
 	lancer() {

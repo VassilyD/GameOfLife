@@ -42,6 +42,7 @@ window.onload = function() {
 
 	document.getElementById("nuke").onclick = function() {
 		jeu.reset('vide');
+		canvas.dessinerJeu();
 		launcherHTML.innerHTML = 'Play';
 		//infoStatsHTML.innerHTML = 'Génération 0 : 0 Cellule vivante';
 		//afficheTestHTML.innerHTML = '';
@@ -49,6 +50,7 @@ window.onload = function() {
 
 	document.getElementById("respawn").onclick = function() {
 		jeu.reset('aleatoire');
+		canvas.dessinerJeu();
 		launcherHTML.innerHTML = 'Play';
 		//infoStatsHTML.innerHTML = 'Génération 0 : ' + jeu.nbVivant + ' Cellule vivante';
 		//afficheTestHTML.innerHTML = '';
@@ -67,7 +69,7 @@ window.onload = function() {
 	window.addEventListener('keydown', function (e) {
 		var keyCode = e.which || e.keyCode;
 		if(e.key == 'Shift') shiftPressed = true;
-		//e.preventDefault();
+		// if(shiftPressed && canvas._mouseOver) canvas.dessinerOutil();
 		toucheEnfonce = (toucheEnfonce || []);
 		toucheEnfonce[keyCode] = (e.type == "keydown");
 		isToucheEnfonce = true;
@@ -75,6 +77,7 @@ window.onload = function() {
 	window.addEventListener('keyup', function (e) {
 		var keyCode = e.which || e.keyCode;
 		if(e.key == 'Shift') shiftPressed = false;
+		// if(!shiftPressed && canvas._mouseOver) canvas.dessinerOutil();
 		toucheEnfonce[keyCode] = (e.type == "keydown");
 		isToucheEnfonce = false;
 		for(touche of toucheEnfonce) isToucheEnfonce = isToucheEnfonce || touche;

@@ -1,22 +1,24 @@
 class Canvas {
 	constructor(canvasHTML, jeu) {
 		this._canvasHTML = canvasHTML;
+		this._canvasOutilsHTML = canvasHTML.parentNode.appendChild(document.createElement('canvas'));
 		this._canvas = this._canvasHTML.getContext('2d');
+		this._canvasOutils = this._canvasOutilsHTML.getContext('2d');
 		this._jeu = jeu;
 		this._taillePixel = 1;
 		this._hauteur = jeu.hauteur;
 		this._largeur = jeu.largeur
 		this._zoom = {top:0, left:0, right:this._largeur - 1, bottom:this._hauteur - 1, zoom:Math.max(this._largeur - 1, this._hauteur - 1)};
-		this._coordMouse = {x:0, y:0};
+		this._coordMouse = {x:-1, y:-1, xRel:-1, yRel:-1};
 		this._mouseOver = false;
 		this._deplacementLibre = false;
 		var t = this;
-		this._canvasHTML.onmousemove = function(event) {t.painting(event)};
-		this._canvasHTML.onmousedown = function(event) {t.paintingStart(event)};
-		this._canvasHTML.onmouseup = function(event) {t.paintingStop(event)};
-		this._canvasHTML.onmouseleave = function(event) {t.paintingLeave(event)};
-		this._canvasHTML.onmouseenter = function(event) {t.paintingPre(event)};
-		this._canvasHTML.parentNode.onwheel = function(event) {t.zooming(event)};
+		this._canvasOutilsHTML.onmousemove = function(event) {t.mouseMove(event)};
+		this._canvasOutilsHTML.onmousedown = function(event) {t.paintingStart(event)};
+		this._canvasOutilsHTML.onmouseup = function(event) {t.paintingStop(event)};
+		this._canvasOutilsHTML.onmouseleave = function(event) {t.mouseLeave(event)};
+		this._canvasOutilsHTML.onmouseenter = function(event) {t.mouseEnter(event)};
+		this._canvasOutilsHTML.parentNode.onwheel = function(event) {t.zooming(event)};
 		
 		this.calculerDimension();
 	}
@@ -57,26 +59,34 @@ class Canvas {
 
 	// Affichage de l'outils selectionné
 	dessinerOutil(){
-		this._canvas.fillStyle = 'rgba(255,0,0,1)';
+		this._canvasOutils.clearRect(0, 0, this._canvasOutilsHTML.clientWidth, this._canvasOutilsHTML.clientHeight);
 		
 		if(shiftPressed) {
 			for(var ligne = 0; ligne < patternActuel.length; ligne++){
 				for(var col = 0; col < patternActuel[ligne].length; col++){
 					//xRel et yRel permettent de connecter les bord entre eux
-					var xRel = this._coordMouse.x + col;
-					xRel = (xRel >= this._jeu._largeur) ? (xRel - this._jeu._largeur) : (xRel < 0) ? xRel + this._jeu._largeur : xRel;
-					var yRel = this._coordMouse.y + ligne;
-					yRel = (yRel >= this._jeu._hauteur) ? (yRel - this._jeu._hauteur) : (yRel < 0) ? yRel + this._jeu._hauteur : yRel;
-					this._canvas.fillStyle = (patternActuel[ligne][col]) ? 'rgba(255,0,0,0.9)' : 'rgba(0,0,0,0.9)';
-					this._canvas.fillRect(((xRel - this._zoom.left + this._jeu.largeur) % this._jeu.largeur) * this._taillePixel, ((yRel - this._zoom.top + this._jeu.hauteur) % this._jeu.hauteur) * this._taillePixel, this._taillePixel, this._taillePixel);
+					if(true || patternActuel[ligne][col]) {
+						var xRel = this._coordMouse.x + col;
+						xRel = (((xRel >= this._jeu._largeur) ? (xRel - this._jeu._largeur) : (xRel < 0) ? xRel + this._jeu._largeur : xRel) - this._zoom.left + this._jeu.largeur) % this._jeu.largeur;
+						var yRel = this._coordMouse.y + ligne;
+						yRel = (((yRel >= this._jeu._hauteur) ? (yRel - this._jeu._hauteur) : (yRel < 0) ? yRel + this._jeu._hauteur : yRel) - this._zoom.top + this._jeu.hauteur) % this._jeu.hauteur;
+						this._canvasOutils.fillStyle = (patternActuel[ligne][col]) ? 'rgba(255,0,0,0.9)' : 'rgba(0,255,0,0.9)';
+						this._canvasOutils.fillRect(xRel * this._taillePixel, yRel * this._taillePixel, this._taillePixel, this._taillePixel);
+					}
 				}
 			}
 		}
-		else this._canvas.fillRect(((this._coordMouse.x - this._zoom.left + this._jeu.largeur) % this._jeu.largeur) * this._taillePixel, ((this._coordMouse.y - this._zoom.top + this._jeu.hauteur) % this._jeu.hauteur) * this._taillePixel, this._taillePixel, this._taillePixel);
+		else {
+			this._canvasOutils.fillStyle = 'rgba(255,0,0,0.9)';
+			this._canvasOutils.fillRect(this._coordMouse.xRel * this._taillePixel, 
+										this._coordMouse.yRel * this._taillePixel, 
+										this._taillePixel, 
+										this._taillePixel);
+		}
 	}
 
 	dessinerCanvas() {	
-		this.dessinerJeu();
+		//this.dessinerJeu();
 		
 		if(this._mouseOver) {
 			this.dessinerOutil();
@@ -91,16 +101,17 @@ class Canvas {
 		
 		ratio = this._largeur / this._hauteur;
 		
-		this._canvasHTML.style.width = Math.min(100 * ratio, 100) + '%';
-		this._canvasHTML.style.height = Math.min(100 / ratio, 100) + '%';
-		this._canvasHTML.style.right = Math.max(50 * (1 - ratio), 0) + '%';
-		this._canvasHTML.style.top = Math.max(50 * (1 - 1 / ratio), 0) + '%';
+		this._canvasOutilsHTML.style.width = this._canvasHTML.style.width = Math.min(100 * ratio, 100) + '%';
+		this._canvasOutilsHTML.style.height = this._canvasHTML.style.height = Math.min(100 / ratio, 100) + '%';
+		this._canvasOutilsHTML.style.right = this._canvasHTML.style.right = Math.max(50 * (1 - ratio), 0) + '%';
+		this._canvasOutilsHTML.style.top = this._canvasHTML.style.top = Math.max(50 * (1 - 1 / ratio), 0) + '%';
 		
-		this._canvasHTML.width = this._canvasHTML.clientWidth;
-		this._canvasHTML.height = this._canvasHTML.clientHeight;
+		this._canvasHTML.width = this._canvasOutilsHTML.width = this._canvasHTML.clientWidth;
+		this._canvasHTML.height = this._canvasOutilsHTML.height = this._canvasHTML.clientHeight;
 		this._taillePixel = (this._largeur < this._hauteur) ? this._canvasHTML.clientHeight / this._hauteur : this._canvasHTML.clientWidth / this._largeur;
 		
-		this.dessinerCanvas();
+		this.dessinerJeu();
+		this.dessinerOutil();
 	}
 	
 	positionSourieCanvas(e){
@@ -111,15 +122,19 @@ class Canvas {
 		}
 		this._coordMouse.x = (this._zoom.left + Math.min(Math.floor(offset.X / this._taillePixel), this._largeur)) % this._jeu.largeur;
 		this._coordMouse.y = (this._zoom.top + Math.min(Math.floor(offset.Y / this._taillePixel), this._hauteur)) % this._jeu.hauteur;
+		this._coordMouse.xRel = (this._coordMouse.x - this._zoom.left + this._jeu.largeur) % this._jeu.largeur;
+		this._coordMouse.yRel = (this._coordMouse.y - this._zoom.top + this._jeu.hauteur) % this._jeu.hauteur;
 	}
 
-	painting(e) {
+	mouseMove(e) {
 		this.positionSourieCanvas(e);
 		var coor = "Coordinates: (" + this._coordMouse.x + "," + this._coordMouse.y + ")";
 		document.getElementById("testtt").innerHTML = coor;
 		if(isPainting && !shiftPressed) {
 			this._jeu.setCell(this._coordMouse.y, this._coordMouse.x, (e.altKey) ? false : true);
+			if(!this._jeu.isAlive) this.dessinerJeu();
 		}
+		// this.dessinerOutil();
 	}
 
 	paintingStart(e) {
@@ -139,6 +154,7 @@ class Canvas {
 		else {
 			this._jeu.setCell(this._coordMouse.y, this._coordMouse.x, (e.altKey) ? false : true);
 		}
+		if(!this._jeu.isAlive) this.dessinerJeu();
 	}
 
 	paintingStop(e) {
@@ -146,15 +162,16 @@ class Canvas {
 	}
 
 	//Quand la sourie entre sur la grille
-	paintingPre(e) {
+	mouseEnter(e) {
 		this._mouseOver = true;
 	}
 
 	//Quand la sourie quitte la grille
-	paintingLeave() {
+	mouseLeave() {
 		this._mouseOver = false;
 		isPainting = false;
 		document.getElementById("testtt").innerHTML = '';
+		this._canvasOutils.clearRect(0, 0, this._canvasOutilsHTML.clientWidth, this._canvasOutilsHTML.clientHeight);
 	}
 
 	deplacementCanvasPre() {

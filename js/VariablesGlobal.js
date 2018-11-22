@@ -72,4 +72,4 @@ var patternList = {	marcheur:{
 						[true, true, false, false, false]]
 				}
 };
-patternActuel = testPattern.slice();
+patternActuel = patternList.canon.gosperGliderGunSE.slice();
