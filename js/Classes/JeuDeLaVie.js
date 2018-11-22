@@ -7,7 +7,8 @@ class JeuDeLaVie {
 		this._vitesse = 30;
 		this._nbGeneration = 0;
 		this._nbVivant = 0;
-		this._nbVivantVariation = 0;
+		this._nbVivantHistorique = [];
+		this._nbVivantMax = 0;
 		this._interval = 0;
 		this._isAlive = false;
 		this._fps = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -29,9 +30,11 @@ class JeuDeLaVie {
 		
 	get nbVivant() {return this._nbVivant}
 		
-	get nbVivantVariation() {return this._nbVivantVariation}
+	get nbVivantVariation() {return this._nbVivant - (this._nbVivantHistorique[1] || this._nbVivantHistorique[0])}
 	
 	get isAlive() {return this._isAlive}
+	
+	get nbVivantMax() {return this._nbVivantMax}
 	
 	get fps() {
 		var fps = 0;
@@ -72,6 +75,13 @@ class JeuDeLaVie {
 		if(val > 0) this._nbVivant = val;
 	}
 
+	set nbVivantMax(val = 0) {
+		if(val > 0) {
+			for(population of this._nbVivantHistorique) if(population > val) val = population;
+			this._nbVivantMax = val;
+		}
+	}
+
 	
 	
 	setCell(ligne, colonne, etat) {
@@ -85,10 +95,10 @@ class JeuDeLaVie {
 		}
 	}
 	
-	setCellInit(ligne, colonne, mode) {
+	setCellInit(ligne, colonne, mode, etatPrecedent = false) {
 		switch (mode) {
 			case 'aleatoire':
-				this._grille[ligne][colonne] = (Math.random() <= 0.3);
+				this._grille[ligne][colonne] = (Math.random() <= ((this.aVoisin(ligne, colonne)) ? 0.3 : 0.005));
 				if(this._grille[ligne][colonne]) this._nbVivant++;
 				break;
 		
@@ -106,13 +116,15 @@ class JeuDeLaVie {
 	}
 
 	setGrille(mode = 'aleatoire') {
+		var etatPrecedent = false;
 		this._grille = [];
 		this._somme = [];
 		for (var ligne = 0, hauteur = this._hauteur; ligne < hauteur; ligne++) {
 			this._grille[ligne] = [];
 			this._somme[ligne] = [];
 			for (var colonne = 0, largeur = this._largeur; colonne < largeur; colonne++) {
-				this.setCellInit(ligne, colonne, mode);
+				this.setCellInit(ligne, colonne, mode, etatPrecedent);
+				etatPrecedent = this._grille[ligne][colonne];
 				this._somme[ligne][colonne] = 0;
 			}
 		}
@@ -128,9 +140,33 @@ class JeuDeLaVie {
 		if(mode != 'extension') {
 			this._nbGeneration = 0;
 			this._nbVivant = 0;
-			this._nbVivantVariation = 0;
+			this._nbVivantHistorique = [];
+			this._nbVivantMax = 0;
 		}
 		this.setGrille(mode);
+		this._nbVivantHistorique.unshift(this._nbVivant);
+		this._nbVivantMax = Math.max(this._nbVivant, this._nbVivantMax);
+	}
+	
+	aVoisin(ligne, colonne) {
+		var iRelatif = 0;
+		var jRelatif = 0;
+		var i = ligne - 1;
+		var iFin = ligne + 1;
+		var aVoisin = false;
+		while (!aVoisin && i <= iFin) {
+			var j = colonne - 1;
+			var jFin = colonne + 1;
+			while (!aVoisin &&  j <= jFin) {
+				// valeur relative = connecte les bords (exemple si i = -1 avec une hauteur de 10, -1 +10 = 9 et 9 % 10 = 9 ce qui correspond à la dernière ligne)
+				iRelatif = (i < 0) ? this._hauteur - 1 : (i < this._hauteur) ? i : 0;
+				jRelatif = (j < 0) ? this._largeur - 1 : (j < this._largeur) ? j : 0;
+				if(this._grille[iRelatif] && this._grille[iRelatif][jRelatif]) aVoisin = true;
+				j++
+			}
+			i++;
+		}
+		return aVoisin;
 	}
 
 	// Ajoute +1 à la somme des voisins de chaque cellule voisine de la cellule indiqué
@@ -149,13 +185,12 @@ class JeuDeLaVie {
 	}
 
 	nouveauCycle() {
-		var nbVivantPasse = this._nbVivant;
+		var estStable = true;
 		for (var ligne = 0; ligne < this._hauteur; ligne++) {
 			for (var colonne = 0; colonne < this._largeur; colonne++) {
 				//si la cellule est vivante, ajouter +1 à la somme des voisins de chaque cellule voisine
 				if(this._grille[ligne][colonne]) {
 					this.ajouterVoisin(ligne, colonne);
-					//nbVivantPasse++;
 				}
 			}
 		}
@@ -165,8 +200,10 @@ class JeuDeLaVie {
 			for (var colonne = 0; colonne < this._largeur; colonne++) {
 				//Actualise la grille à partir de la somme des voisin de chaque cellule et compte le nombre de cellule vivante
 				var nouveauStatut = (this._somme[ligne][colonne] == 3 || (this._grille[ligne][colonne] && this._somme[ligne][colonne] == 2));
-				if(this._grille[ligne][colonne] != nouveauStatut)
+				if(this._grille[ligne][colonne] != nouveauStatut) {
 					this._grille[ligne][colonne] = nouveauStatut;
+					estStable = false;
+				}
 				if(nouveauStatut) 
 					this._nbVivant++;
 				this._somme[ligne][colonne] = 0;
@@ -176,7 +213,10 @@ class JeuDeLaVie {
 		this._fps.push(Date.now());
 		this._fps.shift();
 		this._nbGeneration++;
-		this._nbVivantVariation = this._nbVivant - nbVivantPasse;
+		//this._nbVivantVariation = this._nbVivant - nbVivantPasse;
+		this._nbVivantHistorique.unshift(this._nbVivant);
+		if(this._nbVivant > this._nbVivantMax) this._nbVivantMax = this._nbVivant;
+		if(estStable && this._isAlive) this.lancer();
 	}
 
 	lancer() {

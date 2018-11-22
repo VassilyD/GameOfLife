@@ -109,8 +109,8 @@ class Canvas {
 			offset.X += this._canvasHTML.offsetLeft;
 			offset.Y += this._canvasHTML.offsetTop;
 		}
-		this._coordMouse.x = (this._zoom.left + Math.floor(offset.X / this._taillePixel)) % this._jeu.largeur;
-		this._coordMouse.y = (this._zoom.top + Math.floor(offset.Y / this._taillePixel)) % this._jeu.hauteur;
+		this._coordMouse.x = (this._zoom.left + Math.min(Math.floor(offset.X / this._taillePixel), this._largeur)) % this._jeu.largeur;
+		this._coordMouse.y = (this._zoom.top + Math.min(Math.floor(offset.Y / this._taillePixel), this._hauteur)) % this._jeu.hauteur;
 	}
 
 	painting(e) {

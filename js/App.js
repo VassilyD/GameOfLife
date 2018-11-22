@@ -7,7 +7,7 @@ function myApp() {
 	
 	canvas.dessinerCanvas();
 	
-	infoStatsHTML.innerHTML = 'Génération ' + jeu.nbGeneration + ' : ' + jeu.nbVivant + ' Cellule vivante (' + ((jeu.nbVivantVariation >= 0) ? '+' : '') + (jeu.nbVivantVariation) + ')';
+	infoStatsHTML.innerHTML = 'Génération ' + jeu.nbGeneration + ' : ' + jeu.nbVivant + ' Cellule vivante (' + ((jeu.nbVivantVariation >= 0) ? '+' : '') + (jeu.nbVivantVariation) + '), max : ' + jeu.nbVivantMax;
 	afficheTestHTML.innerHTML = (jeu.isAlive) ? jeu.fps + ' FPS' : '';
 }
 
@@ -77,7 +77,7 @@ window.onload = function() {
 		if(e.key == 'Shift') shiftPressed = false;
 		toucheEnfonce[keyCode] = (e.type == "keydown");
 		isToucheEnfonce = false;
-		for(touche in toucheEnfonce) isToucheEnfonce = isToucheEnfonce || toucheEnfonce[touche];
+		for(touche of toucheEnfonce) isToucheEnfonce = isToucheEnfonce || touche;
 	})
 		
 	var selecteurPatternTmp = document.createElement('select');
