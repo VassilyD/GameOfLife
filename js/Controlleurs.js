@@ -12,7 +12,9 @@ function changerTaille() {
 	var hauteur = tailleSelecteurHTML.elements[0].value * 1;
 	var largeur = tailleSelecteurHTML.elements[1].value * 1;
 	jeu.setJeu(largeur, hauteur, 'aleatoire');
+	canvas.outilsTable = 1;
 	canvas.zoom = {left:0, top:0, right:largeur - 1, bottom:hauteur - 1};
+	// A passer en design pattern controleur
 	launcherHTML.innerHTML = 'Play';
 }
 

@@ -98,7 +98,7 @@ class JeuDeLaVie {
 	setCellInit(ligne, colonne, mode) {
 		switch (mode) {
 			case 'aleatoire':
-				this._grille[ligne][colonne] = (Math.random() <= ((this.aVoisin(ligne, colonne)) ? 0.3 : 0.005));
+				this._grille[ligne][colonne] = (Math.random() <= ((this.aVoisin(ligne, colonne)) ? 0.3 : 0.001));
 				if(this._grille[ligne][colonne]) this._nbVivant++;
 				break;
 		
@@ -181,30 +181,32 @@ class JeuDeLaVie {
 		}
 		this._somme[ligne][colonne]--;
 	}
-
+	
 	nouveauCycle() {
 		var estStable = true;
-		for (var ligne = 0; ligne < this._hauteur; ligne++) {
-			for (var colonne = 0; colonne < this._largeur; colonne++) {
-				//si la cellule est vivante, ajouter +1 à la somme des voisins de chaque cellule voisine
-				if(this._grille[ligne][colonne]) {
-					this.ajouterVoisin(ligne, colonne);
+		var ligne, ligneS, y, hauteur, cellule, celluleS, x, largeur;
+		
+		for (ligne = this._grille[0], y = 0, hauteur = this._hauteur; y < hauteur; y++, ligne = this._grille[y]) {
+			for (cellule = ligne[0], x = 0, largeur = this._largeur; x < largeur; x++, cellule = ligne[x]) {
+				// si la cellule est vivante, ajouter +1 à la somme des voisins de chaque cellule voisine
+				if(cellule) {
+					this.ajouterVoisin(y, x);
 				}
 			}
 		}
 		
 		this._nbVivant = 0;
-		for (var ligne = 0; ligne < this._hauteur; ligne++) {
-			for (var colonne = 0; colonne < this._largeur; colonne++) {
+		for (ligne = this._grille[0], ligneS = this._somme[0], y = 0, hauteur = this._hauteur; y < hauteur; y++, ligne = this._grille[y], ligneS = this._somme[y]) {
+			for (cellule = ligne[0], celluleS = ligneS[0], x = 0, largeur = this._largeur; x < largeur; x++, cellule = ligne[x], celluleS = ligneS[x]) {
 				//Actualise la grille à partir de la somme des voisin de chaque cellule et compte le nombre de cellule vivante
-				var nouveauStatut = (this._somme[ligne][colonne] == 3 || (this._grille[ligne][colonne] && this._somme[ligne][colonne] == 2));
-				if(this._grille[ligne][colonne] != nouveauStatut) {
-					this._grille[ligne][colonne] = nouveauStatut;
+				var nouveauStatut = (celluleS == 3 || (cellule && celluleS == 2));
+				if(cellule != nouveauStatut) {
+					this._grille[y][x] = nouveauStatut;
 					estStable = false;
 				}
 				if(nouveauStatut) 
 					this._nbVivant++;
-				this._somme[ligne][colonne] = 0;
+				this._somme[y][x] = 0;
 			}
 		}
 		
@@ -215,6 +217,8 @@ class JeuDeLaVie {
 		this._nbVivantHistorique.unshift(this._nbVivant);
 		if(this._nbVivant > this._nbVivantMax) this._nbVivantMax = this._nbVivant;
 		if(estStable && this._isAlive) this.lancer();
+		
+		// A passer en design pattern controleur
 		canvas.dessinerJeu();
 	}
 

@@ -76,7 +76,10 @@ window.onload = function() {
 	})
 	window.addEventListener('keyup', function (e) {
 		var keyCode = e.which || e.keyCode;
-		if(e.key == 'Shift') shiftPressed = false;
+		if(e.key == 'Shift') {
+			shiftPressed = false;
+			canvas.outilsTable = 0;
+		}
 		// if(!shiftPressed && canvas._mouseOver) canvas.dessinerOutil();
 		toucheEnfonce[keyCode] = (e.type == "keydown");
 		isToucheEnfonce = false;

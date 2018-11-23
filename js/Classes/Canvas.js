@@ -12,10 +12,12 @@ class Canvas {
 		this._coordMouse = {x:-1, y:-1, xRel:-1, yRel:-1};
 		this._mouseOver = false;
 		this._deplacementLibre = false;
+		this._outilsTable = [];
+		this.outilsTable = 1;
 		var t = this;
 		this._canvasOutilsHTML.onmousemove = function(event) {t.mouseMove(event)};
 		this._canvasOutilsHTML.onmousedown = function(event) {t.paintingStart(event)};
-		this._canvasOutilsHTML.onmouseup = function(event) {t.paintingStop(event)};
+		this._canvasOutilsHTML.onmouseup = function(event) {t.mouseUp(event)};
 		this._canvasOutilsHTML.onmouseleave = function(event) {t.mouseLeave(event)};
 		this._canvasOutilsHTML.onmouseenter = function(event) {t.mouseEnter(event)};
 		this._canvasOutilsHTML.parentNode.onwheel = function(event) {t.zooming(event)};
@@ -32,7 +34,26 @@ class Canvas {
 		this._zoom.zoom = Math.max(this._largeur - 1, this._hauteur - 1)
 	}
 	
-	
+	set outilsTable(mode) {
+		if(mode == 0){
+			// this._outilsTable = [];
+			for(var ligne = 0; ligne < this._jeu.hauteur; ligne++) {
+				// this._outilsTable.push([]);
+				for(var colonne = 0; colonne < this._jeu.largeur; colonne++) {
+					if(this._outilsTable[ligne][colonne]) this._outilsTable[ligne][colonne] = 0;
+				}
+			}
+		}
+		else if(mode == 1){
+			this._outilsTable = [];
+			for(var ligne = 0; ligne < this._jeu.hauteur; ligne++) {
+				this._outilsTable.push([]);
+				for(var colonne = 0; colonne < this._jeu.largeur; colonne++) {
+					this._outilsTable[ligne].push(0);
+				}
+			}
+		}
+	}
 	// Affiche la grille de cellule
 	dessinerJeu(){
 		
@@ -44,16 +65,33 @@ class Canvas {
 		
 		//création des cellules vivantes
 		this._canvas.fillStyle = '#ffffff';
-		for(var ligne = this._zoom.top, i = 0; i < this._hauteur; ligne = ++ligne % this._jeu.hauteur, i++) {
-			for(var colonne = this._zoom.left, j = 0; j < this._largeur; colonne = ++colonne % this._jeu.largeur, j++) {
-				if(this._jeu.grille[ligne][colonne]) this._canvas.fillRect((j) * this._taillePixel, (i) * this._taillePixel, this._taillePixel, this._taillePixel);
-				if(this._deplacementLibre && ((ligne == 0 && colonne == this._zoom.right) || (colonne == 0 && ligne == this._zoom.bottom))) {
+		// for(var ligne = this._zoom.top, i = 0; i < this._hauteur; ligne = ++ligne % this._jeu.hauteur, i++) {
+			// for(var colonne = this._zoom.left, j = 0; j < this._largeur; colonne = ++colonne % this._jeu.largeur, j++) {
+				// if(this._jeu.grille[ligne][colonne]) this._canvas.fillRect((j) * this._taillePixel, (i) * this._taillePixel, this._taillePixel, this._taillePixel);
+				// if(this._deplacementLibre && ((ligne == 0 && colonne == this._zoom.right) || (colonne == 0 && ligne == this._zoom.bottom))) {
+					// this._canvas.fillStyle = 'rgba(255,0,0,0.33)';
+					// if(ligne == 0) this._canvas.fillRect(0, i * this._taillePixel - 2, this._largeur * this._taillePixel, 2);
+					// if(colonne == 0) this._canvas.fillRect(j * this._taillePixel - 2, 0, 2, this._hauteur * this._taillePixel);
+					// this._canvas.fillStyle = '#ffffff';
+				// }
+			// }
+		// }
+		var ligne, y, yRel, hauteur = this._hauteur, hauteurMax = this._jeu.hauteur,
+			cellule, x, xRel, largeur = this._largeur, largeurMax = this._jeu.largeur;
+		for(yRel = this._zoom.top, ligne = this._jeu.grille[yRel], y = 0; y < hauteur; y++) {
+			for(xRel = this._zoom.left, cellule = ligne[xRel], x = 0; x < largeur; x++) {
+				if(cellule) this._canvas.fillRect(x * this._taillePixel, y * this._taillePixel, this._taillePixel, this._taillePixel);
+				if(this._deplacementLibre && ((yRel == 0 && xRel == this._zoom.right) || (xRel == 0 && yRel == this._zoom.bottom))) {
 					this._canvas.fillStyle = 'rgba(255,0,0,0.33)';
-					if(ligne == 0) this._canvas.fillRect(0, i * this._taillePixel - 2, this._largeur * this._taillePixel, 2);
-					if(colonne == 0) this._canvas.fillRect(j * this._taillePixel - 2, 0, 2, this._hauteur * this._taillePixel);
+					if(yRel == 0) this._canvas.fillRect(0, y * this._taillePixel - 2, this._largeur * this._taillePixel, 2);
+					if(xRel == 0) this._canvas.fillRect(x * this._taillePixel - 2, 0, 2, this._hauteur * this._taillePixel);
 					this._canvas.fillStyle = '#ffffff';
 				}
+				xRel = ++xRel % largeurMax;
+				cellule = ligne[xRel];
 			}
+			yRel = ++yRel % hauteurMax;
+			ligne = this._jeu.grille[yRel];
 		}
 	}
 
@@ -61,10 +99,24 @@ class Canvas {
 	dessinerOutil(){
 		this._canvasOutils.clearRect(0, 0, this._canvasOutilsHTML.clientWidth, this._canvasOutilsHTML.clientHeight);
 		
+		// this._canvasOutils.fillStyle = 'rgba(0,0,0,0.8)';
+		// for(var ligne = this._zoom.top, i = 0; i < this._hauteur; ligne = ++ligne % this._jeu.hauteur, i++) {
+			// for(var colonne = this._zoom.left, j = 0; j < this._largeur; colonne = ++colonne % this._jeu.largeur, j++) {
+				// if(this._outilsTable[ligne][colonne] == 1) this._canvasOutils.fillRect((j) * this._taillePixel, (i) * this._taillePixel, this._taillePixel, this._taillePixel);
+			// }
+		// }
+		
+		// this._canvasOutils.fillStyle = 'rgba(255,0,0,0.8)';
+		// for(var ligne = this._zoom.top, i = 0; i < this._hauteur; ligne = ++ligne % this._jeu.hauteur, i++) {
+			// for(var colonne = this._zoom.left, j = 0; j < this._largeur; colonne = ++colonne % this._jeu.largeur, j++) {
+				// if(this._outilsTable[ligne][colonne] == 2) this._canvasOutils.fillRect((j) * this._taillePixel, (i) * this._taillePixel, this._taillePixel, this._taillePixel);
+			// }
+		// }
+		
 		if(shiftPressed) {
 			for(var ligne = 0; ligne < patternActuel.length; ligne++){
 				for(var col = 0; col < patternActuel[ligne].length; col++){
-					//xRel et yRel permettent de connecter les bord entre eux
+					// xRel et yRel permettent de connecter les bord entre eux
 					if(true || patternActuel[ligne][col]) {
 						var xRel = this._coordMouse.x + col;
 						xRel = (((xRel >= this._jeu._largeur) ? (xRel - this._jeu._largeur) : (xRel < 0) ? xRel + this._jeu._largeur : xRel) - this._zoom.left + this._jeu.largeur) % this._jeu.largeur;
@@ -127,6 +179,7 @@ class Canvas {
 	}
 
 	mouseMove(e) {
+		this.outilsTable = 0;
 		this.positionSourieCanvas(e);
 		var coor = "Coordinates: (" + this._coordMouse.x + "," + this._coordMouse.y + ")";
 		document.getElementById("testtt").innerHTML = coor;
@@ -134,6 +187,16 @@ class Canvas {
 			this._jeu.setCell(this._coordMouse.y, this._coordMouse.x, (e.altKey) ? false : true);
 			if(!this._jeu.isAlive) this.dessinerJeu();
 		}
+		if(shiftPressed) {
+			for(var ligne = 0; ligne < patternActuel.length; ligne++){
+				for(var colonne = 0; colonne < patternActuel[ligne].length; colonne++){
+					var xRel = (this._coordMouse.x + colonne) % this._jeu.largeur;
+					var yRel = (this._coordMouse.y + ligne) % this._jeu.hauteur;
+					this._outilsTable[yRel][xRel] = (patternActuel[ligne][colonne]) ? 2 : 1;
+				}
+			}
+		}
+		else this._outilsTable[this._coordMouse.y][this._coordMouse.x] = 2;
 		// this.dessinerOutil();
 	}
 
@@ -143,10 +206,8 @@ class Canvas {
 		if(shiftPressed) {
 			for(var ligne = 0; ligne < patternActuel.length; ligne++){
 				for(var col = 0; col < patternActuel[ligne].length; col++){
-					var xRel = this._coordMouse.x + col;
-					xRel = (xRel >= this._jeu.largeur) ? (xRel - this._jeu.largeur) : (xRel < 0) ? xRel + this._jeu.largeur : xRel;
-					var yRel = this._coordMouse.y + ligne;
-					yRel = (yRel >= this._jeu.hauteur) ? (yRel - this._jeu.hauteur) : (yRel < 0) ? yRel + this._jeu.hauteur : yRel;
+					var xRel = (this._coordMouse.x + col) % this._jeu.largeur;
+					var yRel = (this._coordMouse.y + ligne) % this._jeu.hauteur;
 					this._jeu.setCell(yRel, xRel, patternActuel[ligne][col]);
 				}
 			}
@@ -157,7 +218,7 @@ class Canvas {
 		if(!this._jeu.isAlive) this.dessinerJeu();
 	}
 
-	paintingStop(e) {
+	mouseUp(e) {
 		isPainting = false;
 	}
 
