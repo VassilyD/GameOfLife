@@ -184,11 +184,34 @@ class JeuDeLaVie {
 	
 	nouveauCycle() {
 		var estStable = true;
+		// for (var ligne = 0; ligne < this._hauteur; ligne++) {
+			// for (var colonne = 0; colonne < this._largeur; colonne++) {
+				// /*si la cellule est vivante, ajouter +1 à la somme des voisins de chaque cellule voisine*/
+				// if(this._grille[ligne][colonne]) {
+					// this.ajouterVoisin(ligne, colonne);
+				// }
+			// }
+		// }
+		
+		// this._nbVivant = 0;
+		// for (var ligne = 0; ligne < this._hauteur; ligne++) {
+			// for (var colonne = 0; colonne < this._largeur; colonne++) {
+				// /* Actualise la grille à partir de la somme des voisin de chaque cellule et compte le nombre de cellule vivante */
+				// var nouveauStatut = (this._somme[ligne][colonne] == 3 || (this._grille[ligne][colonne] && this._somme[ligne][colonne] == 2));
+				// if(this._grille[ligne][colonne] != nouveauStatut) {
+					// this._grille[ligne][colonne] = nouveauStatut;
+					// estStable = false;
+				// }
+				// if(nouveauStatut) 
+					// this._nbVivant++;
+				// this._somme[ligne][colonne] = 0;
+			// }
+		// }
 		var ligne, ligneS, y, hauteur, cellule, celluleS, x, largeur;
 		
 		for (ligne = this._grille[0], y = 0, hauteur = this._hauteur; y < hauteur; y++, ligne = this._grille[y]) {
 			for (cellule = ligne[0], x = 0, largeur = this._largeur; x < largeur; x++, cellule = ligne[x]) {
-				// si la cellule est vivante, ajouter +1 à la somme des voisins de chaque cellule voisine
+				/* si la cellule est vivante, ajouter +1 à la somme des voisins de chaque cellule voisine */
 				if(cellule) {
 					this.ajouterVoisin(y, x);
 				}
@@ -198,15 +221,15 @@ class JeuDeLaVie {
 		this._nbVivant = 0;
 		for (ligne = this._grille[0], ligneS = this._somme[0], y = 0, hauteur = this._hauteur; y < hauteur; y++, ligne = this._grille[y], ligneS = this._somme[y]) {
 			for (cellule = ligne[0], celluleS = ligneS[0], x = 0, largeur = this._largeur; x < largeur; x++, cellule = ligne[x], celluleS = ligneS[x]) {
-				//Actualise la grille à partir de la somme des voisin de chaque cellule et compte le nombre de cellule vivante
+				/* Actualise la grille à partir de la somme des voisin de chaque cellule et compte le nombre de cellule vivante */
 				var nouveauStatut = (celluleS == 3 || (cellule && celluleS == 2));
 				if(cellule != nouveauStatut) {
-					this._grille[y][x] = nouveauStatut;
+					ligne[x] = nouveauStatut;
 					estStable = false;
 				}
 				if(nouveauStatut) 
 					this._nbVivant++;
-				this._somme[y][x] = 0;
+				ligneS[x] = 0;
 			}
 		}
 		

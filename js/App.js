@@ -25,7 +25,7 @@ window.onload = function() {
 	tailleSelecteurHTML.elements[1].value = 100;
 	
 	jeu = new JeuDeLaVie(100, 100);
-	canvas = new Canvas(canvasHTML, jeu);
+	canvas = new Canvas(canvasHTML, jeu, true);
 
 	myAppInterval = setInterval(myApp, 16.67);
 	infoStatsHTML.innerHTML = 'Génération 0 : ' + jeu.nbVivant + ' Cellule vivante';
@@ -69,10 +69,10 @@ window.onload = function() {
 	window.addEventListener('keydown', function (e) {
 		var keyCode = e.which || e.keyCode;
 		if(e.key == 'Shift') shiftPressed = true;
-		// if(shiftPressed && canvas._mouseOver) canvas.dessinerOutil();
 		toucheEnfonce = (toucheEnfonce || []);
 		toucheEnfonce[keyCode] = (e.type == "keydown");
 		isToucheEnfonce = true;
+		canvas.dessinerOutil();
 	})
 	window.addEventListener('keyup', function (e) {
 		var keyCode = e.which || e.keyCode;
@@ -80,10 +80,10 @@ window.onload = function() {
 			shiftPressed = false;
 			canvas.outilsTable = 0;
 		}
-		// if(!shiftPressed && canvas._mouseOver) canvas.dessinerOutil();
 		toucheEnfonce[keyCode] = (e.type == "keydown");
 		isToucheEnfonce = false;
 		for(touche of toucheEnfonce) isToucheEnfonce = isToucheEnfonce || touche;
+		canvas.dessinerOutil();
 	})
 		
 	var selecteurPatternTmp = document.createElement('select');

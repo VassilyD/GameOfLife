@@ -1,5 +1,5 @@
 class Canvas {
-	constructor(canvasHTML, jeu) {
+	constructor(canvasHTML, jeu, estEditable) {
 		this._canvasHTML = canvasHTML;
 		this._canvasOutilsHTML = canvasHTML.parentNode.appendChild(document.createElement('canvas'));
 		this._canvas = this._canvasHTML.getContext('2d');
@@ -14,13 +14,15 @@ class Canvas {
 		this._deplacementLibre = false;
 		this._outilsTable = [];
 		this.outilsTable = 1;
-		var t = this;
-		this._canvasOutilsHTML.onmousemove = function(event) {t.mouseMove(event)};
-		this._canvasOutilsHTML.onmousedown = function(event) {t.paintingStart(event)};
-		this._canvasOutilsHTML.onmouseup = function(event) {t.mouseUp(event)};
-		this._canvasOutilsHTML.onmouseleave = function(event) {t.mouseLeave(event)};
-		this._canvasOutilsHTML.onmouseenter = function(event) {t.mouseEnter(event)};
-		this._canvasOutilsHTML.parentNode.onwheel = function(event) {t.zooming(event)};
+		if(estEditable) {
+			var t = this;
+			this._canvasOutilsHTML.onmousemove = function(event) {t.mouseMove(event)};
+			this._canvasOutilsHTML.onmousedown = function(event) {t.paintingStart(event)};
+			this._canvasOutilsHTML.onmouseup = function(event) {t.mouseUp(event)};
+			this._canvasOutilsHTML.onmouseleave = function(event) {t.mouseLeave(event)};
+			this._canvasOutilsHTML.onmouseenter = function(event) {t.mouseEnter(event)};
+			this._canvasOutilsHTML.parentNode.onwheel = function(event) {t.zooming(event)};
+		}
 		
 		this.calculerDimension();
 	}
@@ -112,37 +114,38 @@ class Canvas {
 				// if(this._outilsTable[ligne][colonne] == 2) this._canvasOutils.fillRect((j) * this._taillePixel, (i) * this._taillePixel, this._taillePixel, this._taillePixel);
 			// }
 		// }
-		
-		if(shiftPressed) {
-			for(var ligne = 0; ligne < patternActuel.length; ligne++){
-				for(var col = 0; col < patternActuel[ligne].length; col++){
-					// xRel et yRel permettent de connecter les bord entre eux
-					if(true || patternActuel[ligne][col]) {
-						var xRel = this._coordMouse.x + col;
-						xRel = (((xRel >= this._jeu._largeur) ? (xRel - this._jeu._largeur) : (xRel < 0) ? xRel + this._jeu._largeur : xRel) - this._zoom.left + this._jeu.largeur) % this._jeu.largeur;
-						var yRel = this._coordMouse.y + ligne;
-						yRel = (((yRel >= this._jeu._hauteur) ? (yRel - this._jeu._hauteur) : (yRel < 0) ? yRel + this._jeu._hauteur : yRel) - this._zoom.top + this._jeu.hauteur) % this._jeu.hauteur;
-						this._canvasOutils.fillStyle = (patternActuel[ligne][col]) ? 'rgba(255,0,0,0.9)' : 'rgba(0,255,0,0.9)';
-						this._canvasOutils.fillRect(xRel * this._taillePixel, yRel * this._taillePixel, this._taillePixel, this._taillePixel);
+		if(this._mouseOver) {
+			if(shiftPressed) {
+				for(var ligne = 0; ligne < patternActuel.length; ligne++){
+					for(var col = 0; col < patternActuel[ligne].length; col++){
+						// xRel et yRel permettent de connecter les bord entre eux
+						if(true || patternActuel[ligne][col]) {
+							var xRel = this._coordMouse.x + col;
+							xRel = (((xRel >= this._jeu._largeur) ? (xRel - this._jeu._largeur) : (xRel < 0) ? xRel + this._jeu._largeur : xRel) - this._zoom.left + this._jeu.largeur) % this._jeu.largeur;
+							var yRel = this._coordMouse.y + ligne;
+							yRel = (((yRel >= this._jeu._hauteur) ? (yRel - this._jeu._hauteur) : (yRel < 0) ? yRel + this._jeu._hauteur : yRel) - this._zoom.top + this._jeu.hauteur) % this._jeu.hauteur;
+							this._canvasOutils.fillStyle = (patternActuel[ligne][col]) ? 'rgba(255,0,0,0.9)' : 'rgba(0,255,0,0.9)';
+							this._canvasOutils.fillRect(xRel * this._taillePixel, yRel * this._taillePixel, this._taillePixel, this._taillePixel);
+						}
 					}
 				}
 			}
-		}
-		else {
-			this._canvasOutils.fillStyle = 'rgba(255,0,0,0.9)';
-			this._canvasOutils.fillRect(this._coordMouse.xRel * this._taillePixel, 
-										this._coordMouse.yRel * this._taillePixel, 
-										this._taillePixel, 
-										this._taillePixel);
+			else {
+				this._canvasOutils.fillStyle = 'rgba(255,0,0,0.9)';
+				this._canvasOutils.fillRect(this._coordMouse.xRel * this._taillePixel, 
+											this._coordMouse.yRel * this._taillePixel, 
+											this._taillePixel, 
+											this._taillePixel);
+			}
 		}
 	}
 
 	dessinerCanvas() {	
 		//this.dessinerJeu();
 		
-		if(this._mouseOver) {
+		/*if(this._mouseOver) {
 			this.dessinerOutil();
-		}
+		}*/
 	}
 
 	calculerDimension() {
@@ -197,7 +200,7 @@ class Canvas {
 			}
 		}
 		else this._outilsTable[this._coordMouse.y][this._coordMouse.x] = 2;
-		// this.dessinerOutil();
+		this.dessinerOutil();
 	}
 
 	paintingStart(e) {
