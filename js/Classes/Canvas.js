@@ -15,13 +15,12 @@ class Canvas {
 		this._outilsTable = [];
 		this.outilsTable = 1;
 		if(estEditable) {
-			var t = this;
-			this._canvasOutilsHTML.onmousemove = function(event) {t.mouseMove(event)};
-			this._canvasOutilsHTML.onmousedown = function(event) {t.paintingStart(event)};
-			this._canvasOutilsHTML.onmouseup = function(event) {t.mouseUp(event)};
-			this._canvasOutilsHTML.onmouseleave = function(event) {t.mouseLeave(event)};
-			this._canvasOutilsHTML.onmouseenter = function(event) {t.mouseEnter(event)};
-			this._canvasOutilsHTML.parentNode.onwheel = function(event) {t.zooming(event)};
+			this._canvasOutilsHTML.onmousemove = function(event) {this.mouseMove(event)}.bind(this);
+			this._canvasOutilsHTML.onmousedown = function(event) {this.paintingStart(event)}.bind(this);
+			this._canvasOutilsHTML.onmouseup = function(event) {this.mouseUp(event)}.bind(this);
+			this._canvasOutilsHTML.onmouseleave = function(event) {this.mouseLeave(event)}.bind(this);
+			this._canvasOutilsHTML.onmouseenter = function(event) {this.mouseEnter(event)}.bind(this);
+			this._canvasOutilsHTML.parentNode.onwheel = function(event) {this.zooming(event)}.bind(this);
 		}
 		
 		this.calculerDimension();

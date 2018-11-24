@@ -29,11 +29,16 @@ canvas {
 	border: 2px solid cadetblue;
 }
 
-#grapheCanvas {
+#grapheCanvas, #outilGraphe {
 	top: 0;
 	right: 0;
 	height: 100%;
 	width: 100%;
+}
+
+#infoGraphe {
+	position: absolute;
+	top: -20px;
 }
 
 body {

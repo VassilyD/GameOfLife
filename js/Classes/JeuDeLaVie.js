@@ -30,8 +30,6 @@ class JeuDeLaVie {
 		
 	get nbVivant() {return this._nbVivant}
 		
-	get nbVivantVariation() {return this._nbVivant - this._nbVivantHistorique[this.nbGeneration - 1]}
-	
 	get isAlive() {return this._isAlive}
 	
 	get nbVivantMax() {return this._nbVivantMax}
@@ -49,6 +47,12 @@ class JeuDeLaVie {
 		}
 		if(j != 0) fps /= j;
 		return (Math.floor(100000 / fps) / 100);
+	}
+	
+	nbVivantVariation(Gen = -1) {
+		if(Gen < 0) return this.nbVivant - (this._nbVivantHistorique[this.nbGeneration - 1] || 0);
+		if(Gen == 0) return this.nbVivantHistorique[0];
+		return (this.nbVivantHistorique[Gen] - this.nbVivantHistorique[Gen - 1]);
 	}
 	
 	set vitesse(val) {
@@ -90,8 +94,8 @@ class JeuDeLaVie {
 		etat = !!etat;
 		if(ligne >= 0 && ligne < this._hauteur && colonne >= 0 && colonne < this._largeur) {
 			if(etat != this._grille[ligne][colonne]) {
-				this._nbVivant = (etat) ? ++this._nbVivant : --this._nbVivant;
-				this._nbVivantVariation = (etat) ? ++this._nbVivantVariation : --this._nbVivantVariation;
+				this._nbVivant += (etat) ? 1 : -1;
+				this.nbVivantHistorique[this.nbGeneration] += (etat) ? 1 : -1;
 			}
 			this._grille[ligne][colonne] = etat;
 		}
@@ -238,7 +242,6 @@ class JeuDeLaVie {
 		this._fps.push(Date.now());
 		this._fps.shift();
 		this._nbGeneration++;
-		//this._nbVivantVariation = this._nbVivant - nbVivantPasse;
 		this._nbVivantHistorique.push(this._nbVivant);
 		if(this._nbVivant > this._nbVivantMax) this._nbVivantMax = this._nbVivant;
 		if(estStable && this._isAlive) this.lancer();

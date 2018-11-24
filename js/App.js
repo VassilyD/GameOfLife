@@ -7,7 +7,7 @@ function myApp() {
 	
 	canvas.dessinerCanvas();
 	
-	infoStatsHTML.innerHTML = 'Génération ' + jeu.nbGeneration + ' : ' + jeu.nbVivant + ' Cellule vivante (' + ((jeu.nbVivantVariation >= 0) ? '+' : '') + (jeu.nbVivantVariation) + '), max : ' + jeu.nbVivantMax;
+	infoStatsHTML.innerHTML = 'Génération ' + jeu.nbGeneration + ' : ' + jeu.nbVivant + ' Cellule vivante (' + ((jeu.nbVivantVariation(-1) >= 0) ? '+' : '') + (jeu.nbVivantVariation(-1)) + '), max : ' + jeu.nbVivantMax;
 	afficheTestHTML.innerHTML = (jeu.isAlive) ? jeu.fps + ' FPS' : '';
 }
 
@@ -22,15 +22,14 @@ window.onload = function() {
 	launcherHTML = document.getElementById("launcher");
 	grapheCanvasHTML = document.getElementById('grapheCanvas');
 	
-	tailleSelecteurHTML.elements[0].value = 100;
-	tailleSelecteurHTML.elements[1].value = 100;
+	tailleSelecteurHTML.elements[0].value = 250;
+	tailleSelecteurHTML.elements[1].value = 250;
 	
-	jeu = new JeuDeLaVie(100, 100);
+	jeu = new JeuDeLaVie(250, 250);
 	canvas = new Canvas(canvasHTML, jeu, true);
 	grapheCanvas = new GrapheCanvas(grapheCanvasHTML, jeu);
 
 	myAppInterval = setInterval(myApp, 16.67);
-	infoStatsHTML.innerHTML = 'Génération 0 : ' + jeu.nbVivant + ' Cellule vivante';
 		
 	window.onresize = function() {canvas.calculerDimension()};
 
@@ -39,7 +38,6 @@ window.onload = function() {
 	launcherHTML.onclick = function() {
 		jeu.lancer();
 		launcherHTML.innerHTML = (jeu.isAlive) ? 'Pause' : 'Play';
-		//afficheTestHTML.innerHTML = (jeu.isAlive) ? jeu.fps + ' FPS' : '';
 	}
 
 	document.getElementById("nuke").onclick = function() {
@@ -47,8 +45,6 @@ window.onload = function() {
 		canvas.dessinerJeu();
 		grapheCanvas.dessinerGraphe();
 		launcherHTML.innerHTML = 'Play';
-		//infoStatsHTML.innerHTML = 'Génération 0 : 0 Cellule vivante';
-		//afficheTestHTML.innerHTML = '';
 	}
 
 	document.getElementById("respawn").onclick = function() {
@@ -56,15 +52,12 @@ window.onload = function() {
 		canvas.dessinerJeu();
 		grapheCanvas.dessinerGraphe();
 		launcherHTML.innerHTML = 'Play';
-		//infoStatsHTML.innerHTML = 'Génération 0 : ' + jeu.nbVivant + ' Cellule vivante';
-		//afficheTestHTML.innerHTML = '';
 	}
 
 	document.getElementById("deplacementLibre").onclick = function() {canvas.deplacement()};
 
 	document.getElementById("onePass").onclick = function() {
 		jeu.nouveauCycle();
-		infoStatsHTML.innerHTML = 'Génération ' + jeu.nbGeneration + ' : ' + jeu.nbVivant + ' Cellule vivante (' + ((jeu.nbVivantVariation >= 0) ? '+' : '') + (jeu.nbVivantVariation) + ')';
 	};
 
 	vitesseSelecteurHTML.oninput = changerVitesse;
