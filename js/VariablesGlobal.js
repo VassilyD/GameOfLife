@@ -5,6 +5,7 @@ let vitesseSelecteurHTML;
 let infoStatsHTML;
 let afficheTestHTML;
 let launcherHTML;
+let grapheCanvasHTML;
 
 let myAppInterval = 0;
 let deplacementInterval = 0;
@@ -13,7 +14,7 @@ let isToucheEnfonce = false;
 let isPainting = false;
 let shiftPressed = false;
 let patternActuel;
-let jeu, canvas;
+let jeu, canvas, grapheCanvas;
 
 
 var testPattern = [[false, true, false], [false, false, true], [true, true, true]];

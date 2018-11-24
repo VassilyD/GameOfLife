@@ -20,12 +20,14 @@ window.onload = function() {
 	infoStatsHTML = document.getElementById('infoStats');
 	afficheTestHTML = document.getElementById("fill");
 	launcherHTML = document.getElementById("launcher");
+	grapheCanvasHTML = document.getElementById('grapheCanvas');
 	
 	tailleSelecteurHTML.elements[0].value = 100;
 	tailleSelecteurHTML.elements[1].value = 100;
 	
 	jeu = new JeuDeLaVie(100, 100);
 	canvas = new Canvas(canvasHTML, jeu, true);
+	grapheCanvas = new GrapheCanvas(grapheCanvasHTML, jeu);
 
 	myAppInterval = setInterval(myApp, 16.67);
 	infoStatsHTML.innerHTML = 'Génération 0 : ' + jeu.nbVivant + ' Cellule vivante';
@@ -43,6 +45,7 @@ window.onload = function() {
 	document.getElementById("nuke").onclick = function() {
 		jeu.reset('vide');
 		canvas.dessinerJeu();
+		grapheCanvas.dessinerGraphe();
 		launcherHTML.innerHTML = 'Play';
 		//infoStatsHTML.innerHTML = 'Génération 0 : 0 Cellule vivante';
 		//afficheTestHTML.innerHTML = '';
@@ -51,6 +54,7 @@ window.onload = function() {
 	document.getElementById("respawn").onclick = function() {
 		jeu.reset('aleatoire');
 		canvas.dessinerJeu();
+		grapheCanvas.dessinerGraphe();
 		launcherHTML.innerHTML = 'Play';
 		//infoStatsHTML.innerHTML = 'Génération 0 : ' + jeu.nbVivant + ' Cellule vivante';
 		//afficheTestHTML.innerHTML = '';

@@ -267,6 +267,9 @@ class Canvas {
 				this._zoom.bottom = (this._zoom.bottom + direction[1] * delta.y + this._jeu.hauteur) % this._jeu.hauteur;
 			}
 		}
+		if(!(this._jeu.isAlive && (this._jeu.vitesse < 50 || this._jeu.vitesse >= 50 && this._jeu._fps[10] - this._jeu._fps[9] > this._jeu.vitesse * 1.2))) {
+			this.dessinerJeu();
+		}
 	}
 
 	deplacement() {

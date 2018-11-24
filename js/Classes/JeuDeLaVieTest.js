@@ -3,7 +3,7 @@ class JeuDeLaVie {
 		this._largeur = largeur;
 		this._hauteur = hauteur;
 		this._somme = []; 
-		this._grille = []; 
+		this._grille = [[], []]; 
 		this._vitesse = 30;
 		this._nbGeneration = 0;
 		this._nbVivant = 0;
@@ -11,6 +11,7 @@ class JeuDeLaVie {
 		this._nbVivantMax = 0;
 		this._interval = 0;
 		this._isAlive = false;
+		this._etat = 0;
 		this._fps = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 		
 		this.setJeu(largeur, hauteur);
@@ -18,7 +19,7 @@ class JeuDeLaVie {
 	
 	get somme() {return this._somme}
 		
-	get grille() {return this._grille}
+	get grille() {return this._grille[this._etat]}
 		
 	get largeur() {return this._largeur}
 		
@@ -30,13 +31,11 @@ class JeuDeLaVie {
 		
 	get nbVivant() {return this._nbVivant}
 		
-	get nbVivantVariation() {return this._nbVivant - this._nbVivantHistorique[this.nbGeneration - 1]}
+	get nbVivantVariation() {return this._nbVivant - (this._nbVivantHistorique[1] || this._nbVivantHistorique[0])}
 	
 	get isAlive() {return this._isAlive}
 	
 	get nbVivantMax() {return this._nbVivantMax}
-	
-	get nbVivantHistorique() {return this._nbVivantHistorique}
 	
 	get fps() {
 		var fps = 0;
@@ -89,23 +88,26 @@ class JeuDeLaVie {
 	setCell(ligne, colonne, etat) {
 		etat = !!etat;
 		if(ligne >= 0 && ligne < this._hauteur && colonne >= 0 && colonne < this._largeur) {
-			if(etat != this._grille[ligne][colonne]) {
+			if(etat != this._grille[this._etat][ligne][colonne]) {
 				this._nbVivant = (etat) ? ++this._nbVivant : --this._nbVivant;
 				this._nbVivantVariation = (etat) ? ++this._nbVivantVariation : --this._nbVivantVariation;
 			}
-			this._grille[ligne][colonne] = etat;
+			this._grille[this._etat][ligne][colonne] = etat;
 		}
 	}
 	
 	setCellInit(ligne, colonne, mode) {
 		switch (mode) {
 			case 'aleatoire':
-				this._grille[ligne][colonne] = (Math.random() <= ((this.aVoisin(ligne, colonne)) ? 0.3 : 0.001));
-				if(this._grille[ligne][colonne]) this._nbVivant++;
+				var etat = (Math.random() <= ((this.aVoisin(ligne, colonne)) ? 0.3 : 0.001));
+				this._grille[0][ligne][colonne] = etat;
+				this._grille[1][ligne][colonne] = etat;
+				if(etat) this._nbVivant++;
 				break;
 		
 			case 'vide':
-				this._grille[ligne][colonne] = false;
+				this._grille[0][ligne][colonne] = false;
+				this._grille[1][ligne][colonne] = false;
 				break;
 		
 			/*case 'extension':
@@ -113,15 +115,18 @@ class JeuDeLaVie {
 				break;*/
 		
 			default:
-				this._grille[ligne][colonne] = false;
+				this._grille[0][ligne][colonne] = false;
+				this._grille[1][ligne][colonne] = false;
 		}
 	}
 
 	setGrille(mode = 'aleatoire') {
-		this._grille = [];
+		this._grille[0] = [];
+		this._grille[1] = [];
 		this._somme = [];
 		for (var ligne = 0, hauteur = this._hauteur; ligne < hauteur; ligne++) {
-			this._grille[ligne] = [];
+			this._grille[0][ligne] = [];
+			this._grille[1][ligne] = [];
 			this._somme[ligne] = [];
 			for (var colonne = 0, largeur = this._largeur; colonne < largeur; colonne++) {
 				this.setCellInit(ligne, colonne, mode);
@@ -142,9 +147,10 @@ class JeuDeLaVie {
 			this._nbVivant = 0;
 			this._nbVivantHistorique = [];
 			this._nbVivantMax = 0;
+			this._etat = 0;
 		}
 		this.setGrille(mode);
-		this._nbVivantHistorique.push(this._nbVivant);
+		this._nbVivantHistorique.unshift(this._nbVivant);
 		this._nbVivantMax = Math.max(this._nbVivant, this._nbVivantMax);
 	}
 	
@@ -161,7 +167,7 @@ class JeuDeLaVie {
 				// valeur relative = connecte les bords (exemple si i = -1 avec une hauteur de 10, -1 +10 = 9 et 9 % 10 = 9 ce qui correspond à la dernière ligne)
 				iRelatif = (i < 0) ? this._hauteur - 1 : (i < this._hauteur) ? i : 0;
 				jRelatif = (j < 0) ? this._largeur - 1 : (j < this._largeur) ? j : 0;
-				if(this._grille[iRelatif] && this._grille[iRelatif][jRelatif]) aVoisin = true;
+				if(this._grille[0][iRelatif] && this._grille[0][iRelatif][jRelatif]) aVoisin = true;
 				j++
 			}
 			i++;
@@ -184,8 +190,27 @@ class JeuDeLaVie {
 		this._somme[ligne][colonne]--;
 	}
 	
+	nbVoisinCellule(ligne, colonne) {
+		var iRelatif, jRelatif, nbVoisin = 0;
+		for (var i = ligne - 1, iFin = ligne + 1; i <= iFin; i++) {
+			for (var j = colonne - 1, jFin = colonne + 1; j <= jFin; j++) {
+				// valeur relative = connecte les bords (exemple si i = -1 avec une hauteur de 10, -1 +10 = 9 et 9 % 10 = 9 ce qui correspond à la dernière ligne)
+				iRelatif = (i < 0) ? this._hauteur - 1 : (i < this._hauteur) ? i : 0;
+				jRelatif = (j < 0) ? this._largeur - 1 : (j < this._largeur) ? j : 0;
+				if(this._grille[this._etat][iRelatif][jRelatif]) nbVoisin++;
+			}
+		}
+		nbVoisin--;
+		return nbVoisin;
+	}
+	
+	statutSuivantCellule(cellule, ligne, colonne) {
+		var nbVoisin = this.nbVoisinCellule(ligne, colonne);
+		return (nbVoisin == 3 || (cellule && nbVoisin == 2))
+	}
+	
 	nouveauCycle() {
-		var estStable = true;
+		var estStable = true, etatSuivant = (this._etat + 1) % 2;
 		// for (var ligne = 0; ligne < this._hauteur; ligne++) {
 			// for (var colonne = 0; colonne < this._largeur; colonne++) {
 				// /*si la cellule est vivante, ajouter +1 à la somme des voisins de chaque cellule voisine*/
@@ -209,43 +234,44 @@ class JeuDeLaVie {
 				// this._somme[ligne][colonne] = 0;
 			// }
 		// }
-		var ligne, ligneS, y, hauteur, cellule, celluleS, x, largeur;
+		var ligneA, ligneS, y, hauteur, celluleA, celluleS, x, largeur;
 		
-		for (ligne = this._grille[0], y = 0, hauteur = this._hauteur; y < hauteur; y++, ligne = this._grille[y]) {
-			for (cellule = ligne[0], x = 0, largeur = this._largeur; x < largeur; x++, cellule = ligne[x]) {
-				/* si la cellule est vivante, ajouter +1 à la somme des voisins de chaque cellule voisine */
-				if(cellule) {
-					this.ajouterVoisin(y, x);
-				}
-			}
-		}
+		// for (ligne = this._grille[0], y = 0, hauteur = this._hauteur; y < hauteur; y++, ligne = this._grille[y]) {
+			// for (cellule = ligne[0], x = 0, largeur = this._largeur; x < largeur; x++, cellule = ligne[x]) {
+				// /* si la cellule est vivante, ajouter +1 à la somme des voisins de chaque cellule voisine */
+				// if(cellule) {
+					// this.ajouterVoisin(y, x);
+				// }
+			// }
+		// }
 		
 		this._nbVivant = 0;
-		for (ligne = this._grille[0], ligneS = this._somme[0], y = 0, hauteur = this._hauteur; y < hauteur; y++, ligne = this._grille[y], ligneS = this._somme[y]) {
-			for (cellule = ligne[0], celluleS = ligneS[0], x = 0, largeur = this._largeur; x < largeur; x++, cellule = ligne[x], celluleS = ligneS[x]) {
+		for (ligneA = this._grille[this._etat][0], ligneS = this._grille[etatSuivant][0], y = 0, hauteur = this._hauteur; y < hauteur; y++, ligneA = this._grille[this._etat][y], ligneS = this._grille[etatSuivant][y]) {
+			for (celluleA = ligneA[0], celluleS = ligneS[0], x = 0, largeur = this._largeur; x < largeur; x++, celluleA = ligneA[x], celluleS = ligneS[x]) {
 				/* Actualise la grille à partir de la somme des voisin de chaque cellule et compte le nombre de cellule vivante */
-				var nouveauStatut = (celluleS == 3 || (cellule && celluleS == 2));
-				if(cellule != nouveauStatut) {
-					ligne[x] = nouveauStatut;
+				var nouveauStatut = this.statutSuivantCellule(celluleA, y, x);
+					ligneS[x] = nouveauStatut;
+				if(celluleA != nouveauStatut) {
 					estStable = false;
 				}
 				if(nouveauStatut) 
 					this._nbVivant++;
-				ligneS[x] = 0;
+				// ligneS[x] = 0;
 			}
 		}
+		
+		this._etat = etatSuivant;
 		
 		this._fps.push(Date.now());
 		this._fps.shift();
 		this._nbGeneration++;
 		//this._nbVivantVariation = this._nbVivant - nbVivantPasse;
-		this._nbVivantHistorique.push(this._nbVivant);
+		this._nbVivantHistorique.unshift(this._nbVivant);
 		if(this._nbVivant > this._nbVivantMax) this._nbVivantMax = this._nbVivant;
 		if(estStable && this._isAlive) this.lancer();
 		
 		// A passer en design pattern controleur
 		canvas.dessinerJeu();
-		grapheCanvas.dessinerGraphe();
 	}
 
 	lancer() {

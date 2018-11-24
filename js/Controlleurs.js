@@ -16,8 +16,9 @@ function changerTaille() {
 	canvas.zoom = {left:0, top:0, right:largeur - 1, bottom:hauteur - 1};
 	// A passer en design pattern controleur
 	launcherHTML.innerHTML = 'Play';
+	grapheCanvas.dessinerGraphe();
+	canvas.dessinerJeu();
 }
-
 
 //Génération du selecteur
 function selectionPatternFinal(e){
