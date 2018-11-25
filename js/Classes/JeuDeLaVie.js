@@ -248,7 +248,7 @@ class JeuDeLaVie {
 		
 		// A passer en design pattern controleur
 		canvas.dessinerJeu();
-		grapheCanvas.dessinerGraphe();
+		grapheCanvas.calculerDimensions();
 	}
 
 	lancer() {

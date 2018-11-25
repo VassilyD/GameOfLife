@@ -31,7 +31,10 @@ window.onload = function() {
 
 	myAppInterval = setInterval(myApp, 16.67);
 		
-	window.onresize = function() {canvas.calculerDimension()};
+	window.onresize = function() {
+		canvas.calculerDimension();
+		grapheCanvas.calculerDimensions();
+	}
 
 	document.getElementById('tailleSelecteurBouton').onclick = changerTaille;
 
