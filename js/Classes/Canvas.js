@@ -266,7 +266,7 @@ class Canvas {
 
 	deplacementCanvas(direction) {
 		var delta = {x:Math.max(1, Math.round(this._largeur / 50)), y:Math.max(1, Math.round(this._hauteur / 50))};
-		if(direction[0] != 0) {
+		if(direction[0] != 0 || !this._jeu.connectionEO) {
 			if(this.deplacementLibre && this._jeu.connectionEO) {
 				this._zoom.left = (this._zoom.left + direction[0] * delta.x + this._jeu.largeur) % this._jeu.largeur;
 				this._zoom.right = (this._zoom.right + direction[0] * delta.x + this._jeu.largeur) % this._jeu.largeur;
@@ -275,7 +275,7 @@ class Canvas {
 				this._zoom.right = Math.min(Math.max(this._zoom.right + direction[0] * delta.x, this._largeur - 1),  this._jeu.largeur - 1);
 			}
 		}
-		if(direction[1] != 0) {
+		if(direction[1] != 0 || !this._jeu.connectionNS) {
 			if(this.deplacementLibre && this._jeu.connectionNS) {
 				this._zoom.top = (this._zoom.top + direction[1] * delta.y + this._jeu.hauteur) % this._jeu.hauteur;
 				this._zoom.bottom = (this._zoom.bottom + direction[1] * delta.y + this._jeu.hauteur) % this._jeu.hauteur;

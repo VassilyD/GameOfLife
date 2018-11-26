@@ -30,6 +30,7 @@ function selectionConnections() {
 	selecteurConnectionsElementHTML.forEach(function(item, index) {
 		if(item.checked) jeu.connections = item.value*1;
 	});
+	canvas.deplacementCanvas([0,0]);
 }
 
 //Génération du selecteur
