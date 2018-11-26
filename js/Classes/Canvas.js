@@ -13,7 +13,7 @@ class Canvas {
 		this._mouseOver = false;
 		this._deplacementLibre = false;
 		// this._estEnTrainDeDessiner = false; // Useless
-		this._outils = 'dessin';
+		this._outils = 'deplacement';
 		if(estEditable) {
 			this._canvasOutilsHTML.onmousemove = function(event) {this.pointeurDeplacement(event)}.bind(this);
 			this._canvasOutilsHTML.onmousedown = function(event) {this.pointeurClique(event)}.bind(this);
@@ -249,8 +249,8 @@ class Canvas {
 
 	deplacementCanvasSourie(e) {
 		var direction = [0, 0];
-		if(Math.abs(e.movementX) > Math.max(this._taillePixel, 3)) direction[0] = -1 * Math.floor(e.movementX / Math.abs(e.movementX));
-		if(Math.abs(e.movementY) > Math.max(this._taillePixel, 3)) direction[1] = -1 * Math.floor(e.movementY / Math.abs(e.movementY));
+		if(Math.abs(e.movementX) > 3) direction[0] = -1 * Math.floor(e.movementX / Math.abs(e.movementX));
+		if(Math.abs(e.movementY) > 3) direction[1] = -1 * Math.floor(e.movementY / Math.abs(e.movementY));
 		if(direction[0] != 0 || direction[1] != 0)  this.deplacementCanvas(direction);
 	}
 	

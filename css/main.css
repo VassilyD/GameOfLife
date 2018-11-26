@@ -4,8 +4,7 @@
 	left: 5vh;
 	width: 40vw;
 	height: 50vh;
-	overflow: auto;
-	line-height: 2vh;
+	line-height: 1.8vh;
 }
 
 canvas {

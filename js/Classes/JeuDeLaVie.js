@@ -45,7 +45,7 @@ class JeuDeLaVie {
 				j++;
 			}
 		}
-		if(j != 0) fps /= j;
+		if(j != 0) fps /= (j);
 		return (Math.floor(100000 / fps) / 100);
 	}
 	
@@ -56,7 +56,7 @@ class JeuDeLaVie {
 	}
 	
 	set vitesse(val) {
-		if(val > 1 && val < 250) {
+		if(val >= 1 && val <= 250) {
 			this._vitesse = val;
 			if(this._isAlive) {
 				this.lancer();

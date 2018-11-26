@@ -59,7 +59,10 @@ window.onload = function() {
 	}
 
 	document.getElementById("deplacementLibre").onclick = function() {
-		if(!canvas.deplacementLibre) selecteurOutilElementHTML[0].checked = true;
+		if(!canvas.deplacementLibre) {
+			selecteurOutilElementHTML[0].checked = true;
+			selectionOutil()
+		}
 		canvas.deplacement();
 	}
 

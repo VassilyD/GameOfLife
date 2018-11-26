@@ -1,7 +1,7 @@
 
 function changerVitesse() {
-	jeu.vitesse = (250 - vitesseSelecteur.value*1);
-	document.getElementById('vitesseAffiche').innerHTML = (Math.floor(100000 / jeu.vitesse) / 100) + ' FPS';
+	jeu.vitesse = 1000 / (vitesseSelecteur.value*1);
+	document.getElementById('vitesseAffiche').innerHTML = vitesseSelecteur.value + ' FPS';
 	if(jeu.isAlive) {
 		clearInterval(myAppInterval);
 		myAppInterval = setInterval(myApp, Math.min(jeu.vitesse, 16.67));
