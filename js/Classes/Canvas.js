@@ -15,11 +15,11 @@ class Canvas {
 		// this._estEnTrainDeDessiner = false; // Useless
 		this._outils = 'dessin';
 		if(estEditable) {
-			this._canvasOutilsHTML.onmousemove = function(event) {this.mouseMove(event)}.bind(this);
-			this._canvasOutilsHTML.onmousedown = function(event) {this.paintingStart(event)}.bind(this);
-			this._canvasOutilsHTML.onmouseup = function(event) {this.mouseUp(event)}.bind(this);
-			this._canvasOutilsHTML.onmouseleave = function(event) {this.mouseLeave(event)}.bind(this);
-			this._canvasOutilsHTML.onmouseenter = function(event) {this.mouseEnter(event)}.bind(this);
+			this._canvasOutilsHTML.onmousemove = function(event) {this.pointeurDeplacement(event)}.bind(this);
+			this._canvasOutilsHTML.onmousedown = function(event) {this.pointeurClique(event)}.bind(this);
+			this._canvasOutilsHTML.onmouseup = function(event) {this.pointeurRelache(event)}.bind(this);
+			this._canvasOutilsHTML.onmouseleave = function(event) {this.pointeurSortie(event)}.bind(this);
+			this._canvasOutilsHTML.onmouseenter = function(event) {this.pointeurEntree(event)}.bind(this);
 			this._canvasOutilsHTML.parentNode.onwheel = function(event) {this.zooming(event)}.bind(this);
 		}
 		
@@ -30,6 +30,13 @@ class Canvas {
 	// get dessine() {return this._estEnTrainDeDessiner};
 	
 	get outils() {return this._outils}
+	
+	get deplacementLibre() {return this._deplacementLibre}
+	
+	set deplacementLibre(estLibre) {
+		estLibre = !!estLibre;
+		this._deplacementLibre = estLibre;
+	}
 	
 	set zoom(zoom) {
 		this._zoom.left = Math.abs(zoom.left) % this._jeu.largeur;
@@ -127,12 +134,13 @@ class Canvas {
 					break;
 					
 				case 'dessin':
+				case 'deplacement':
 					this._canvasOutils.fillStyle = 'rgba(255,0,0,0.9)';
 					this._canvasOutils.fillRect(this._coordMouse.xRel * this._taillePixel, this._coordMouse.yRel * this._taillePixel, this._taillePixel, this._taillePixel);
 					break;
 					
 				default:
-					console.log('pas censé arriver ici ^^');
+					// console.log('pas censé arriver ici ^^');
 			}
 		}
 	}
@@ -178,23 +186,26 @@ class Canvas {
 		this._coordMouse.yRel = (this._coordMouse.y - this._zoom.top + this._jeu.hauteur) % this._jeu.hauteur;
 	}
 
-	mouseMove(e) {
-		this.outilsTable = 0;
+	pointeurDeplacement(e) {
 		this.positionSourieCanvas(e);
-		var coor = "Coordinates: (" + this._coordMouse.x + "," + this._coordMouse.y + ")";
-		document.getElementById("testtt").innerHTML = coor;
-		if(e.buttons == 1 && this.outils == 'dessin') {
-			this._jeu.setCell(this._coordMouse.y, this._coordMouse.x, (e.altKey) ? false : true);
-			if(!this._jeu.isAlive) this.dessinerJeu();
+		document.getElementById("testtt").innerHTML = "Coordinates: (" + this._coordMouse.x + "," + this._coordMouse.y + ")";
+		if(e.buttons == 1) switch(this.outils) {
+			case 'dessin':
+				this._jeu.setCell(this._coordMouse.y, this._coordMouse.x, (e.altKey) ? false : true);
+				if(!this._jeu.isAlive) this.dessinerJeu();
+				break;
+			
+			case 'deplacement':
+				this.deplacementCanvasSourie(e);
 		}
 		this.dessinerOutil();
 	}
 
-	paintingStart(e) {
-		this.dessine = true;
+	pointeurClique(e) {
+		// this.dessine = true;
 		this.positionSourieCanvas(e);
 		
-		switch(this.outils) {
+		if(e.buttons == 1) switch(this.outils) {
 			case 'patron':
 				for(var ligne = 0; ligne < patternActuel.length; ligne++){
 					for(var col = 0; col < patternActuel[ligne].length; col++){
@@ -208,6 +219,10 @@ class Canvas {
 			case 'dessin':
 				this._jeu.setCell(this._coordMouse.y, this._coordMouse.x, (e.altKey) ? false : true);
 				break;
+			
+			case 'deplacement':
+				this.deplacementDebut = {x: this._coordMouse.xRel, y: this._coordMouse.yRel};
+				break;
 				
 			default:
 				console.log('Y a comme un soucie dans le choix des outils');
@@ -216,23 +231,30 @@ class Canvas {
 		if(!this._jeu.isAlive) this.dessinerJeu();
 	}
 
-	mouseUp(e) {
-		this.dessine = false;
+	pointeurRelache(e) {
+		// this.dessine = false;
 	}
 
 	//Quand la sourie entre sur la grille
-	mouseEnter(e) {
+	pointeurEntree(e) {
 		this._mouseOver = true;
 	}
 
 	//Quand la sourie quitte la grille
-	mouseLeave() {
+	pointeurSortie() {
 		this._mouseOver = false;
 		document.getElementById("testtt").innerHTML = '';
 		this.dessinerOutil();
 	}
 
-	deplacementCanvasPre() {
+	deplacementCanvasSourie(e) {
+		var direction = [0, 0];
+		if(Math.abs(e.movementX) > Math.max(this._taillePixel, 3)) direction[0] = -1 * Math.floor(e.movementX / Math.abs(e.movementX));
+		if(Math.abs(e.movementY) > Math.max(this._taillePixel, 3)) direction[1] = -1 * Math.floor(e.movementY / Math.abs(e.movementY));
+		if(direction[0] != 0 || direction[1] != 0)  this.deplacementCanvas(direction);
+	}
+	
+	deplacementCanvasClavier() {
 		var direction = [0, 0];
 		if (toucheEnfonce && toucheEnfonce[37]) {direction[0] = -1; }
 		if (toucheEnfonce && toucheEnfonce[39]) {direction[0] = 1; }
@@ -244,7 +266,7 @@ class Canvas {
 	deplacementCanvas(direction) {
 		var delta = {x:Math.max(1, Math.round(this._largeur / 50)), y:Math.max(1, Math.round(this._hauteur / 50))};
 		if(direction[0] != 0) {
-			if(!this._deplacementLibre) {
+			if(!this.deplacementLibre) {
 				this._zoom.left = Math.min(Math.max(this._zoom.left + direction[0] * delta.x, 0),  this._jeu.largeur - this._largeur);
 				this._zoom.right = Math.min(Math.max(this._zoom.right + direction[0] * delta.x, this._largeur - 1),  this._jeu.largeur - 1);
 			} else {
@@ -253,7 +275,7 @@ class Canvas {
 			}
 		}
 		if(direction[1] != 0) {
-			if(!this._deplacementLibre) {
+			if(!this.deplacementLibre) {
 				this._zoom.top = Math.min(Math.max(this._zoom.top + direction[1] * delta.y, 0),  this._jeu.hauteur - this._hauteur);
 				this._zoom.bottom = Math.min(Math.max(this._zoom.bottom + direction[1] * delta.y, this._hauteur - 1),  this._jeu.hauteur - 1);
 			} else {
@@ -263,12 +285,11 @@ class Canvas {
 		}
 		if(!(this._jeu.isAlive && (this._jeu.vitesse < 50 || this._jeu.vitesse >= 50 && this._jeu._fps[10] - this._jeu._fps[9] > this._jeu.vitesse * 1.2))) {
 			this.dessinerJeu();
-			console.log('toto');
 		}
 	}
 
 	deplacement() {
-		this._deplacementLibre = !this._deplacementLibre;
+		this.deplacementLibre = !this.deplacementLibre;
 		if (this._zoom.left + this._largeur >= this._jeu.largeur) {
 			var delta = this._zoom.left + this._largeur - this._jeu.largeur;
 			if(delta > this._largeur / 2) delta = -1 * (this._largeur - delta);
@@ -283,7 +304,7 @@ class Canvas {
 			this._zoom.top = (this._zoom.top - delta + this._jeu.hauteur) % this._jeu.hauteur;
 			this._zoom.bottom = (this._zoom.bottom - delta + this._jeu.hauteur) % this._jeu.hauteur;
 		}
-		document.getElementById("deplacementLibre").innerHTML = (this._deplacementLibre) ? 'Désactiver déplacement libre' : 'Activer déplacement libre';
+		document.getElementById("deplacementLibre").innerHTML = (this.deplacementLibre) ? 'Désactiver déplacement libre' : 'Activer déplacement libre';
 		this.calculerDimension();
 	}
 
@@ -300,18 +321,16 @@ class Canvas {
 	zooming(e) {
 		this.positionSourieCanvas(e);
 		
-		var coordMouseRel = {	x:(this._coordMouse.x - this._zoom.left + this._jeu.largeur) % this._jeu.largeur, // coordonné du pointeur dans la zone visible
-								y:(this._coordMouse.y - this._zoom.top + this._jeu.hauteur) % this._jeu.hauteur}	
-		var coordMouseRatio = {	x:(coordMouseRel.x / (this._largeur -1 ) - 0.5) * 2, // vaut entre -1 et +1 selon si la sourie est plus ou moins à gauche ou plus ou moins à droite
-								y:(coordMouseRel.y / (this._hauteur - 1) - 0.5) * 2} // même chose mais entre le haut et le bas/**/
+		var coordMouseRatio = {	x:(this._coordMouse.xRel / (this._largeur -1 ) - 0.5) * 2, // vaut entre -1 et +1 selon si la sourie est plus ou moins à gauche ou plus ou moins à droite
+								y:(this._coordMouse.yRel / (this._hauteur - 1) - 0.5) * 2} // même chose mais entre le haut et le bas/**/
 								
 		var deltaRatio = Math.round(Math.max(Math.abs(e.deltaY) * this._zoom.zoom / 60, 1)); // adapte le delta à la taille de la zone visible
 		
 		var deltaWheel = e.deltaY / Math.abs(e.deltaY); // molette vers l'avant = -1 = zoom in, molette vers l'arrière = 1 = zoom out
 		
 		var delta = {	
-			left:deltaWheel * ((!this._deplacementLibre && deltaWheel == 1 && deltaRatio * (1 - coordMouseRatio.x) >= this._jeu.largeur - 1 - this._zoom.right) ? deltaRatio * 2 + this._zoom.right - (this._jeu.largeur - 1) : deltaRatio * (1 + coordMouseRatio.x)),
-			top:deltaWheel * ((!this._deplacementLibre && deltaWheel == 1 && deltaRatio * (1 - coordMouseRatio.y) >= this._jeu.hauteur - 1 - this._zoom.bottom) ? deltaRatio * 2 + this._zoom.bottom - (this._jeu.hauteur - 1) : deltaRatio * (1 + coordMouseRatio.y))};
+			left:deltaWheel * ((!this.deplacementLibre && deltaWheel == 1 && deltaRatio * (1 - coordMouseRatio.x) >= this._jeu.largeur - 1 - this._zoom.right) ? deltaRatio * 2 + this._zoom.right - (this._jeu.largeur - 1) : deltaRatio * (1 + coordMouseRatio.x)),
+			top:deltaWheel * ((!this.deplacementLibre && deltaWheel == 1 && deltaRatio * (1 - coordMouseRatio.y) >= this._jeu.hauteur - 1 - this._zoom.bottom) ? deltaRatio * 2 + this._zoom.bottom - (this._jeu.hauteur - 1) : deltaRatio * (1 + coordMouseRatio.y))};
 		
 		this._zoom.zoom = Math.min(Math.max(this._zoom.zoom + deltaWheel * 2 * deltaRatio, 9), Math.max(this._jeu.largeur - 1, this._jeu.hauteur - 1));
 		
@@ -321,9 +340,9 @@ class Canvas {
 		var adapt = {	X:{t: this._zoom.right < this._zoom.left, vfi: this._zoom.right + this._jeu.largeur, vfo: this._zoom.right - this._jeu.largeur}, 
 						Y:{t: this._zoom.bottom < this._zoom.top, vfi: this._zoom.bottom + this._jeu.hauteur, vfo: this._zoom.bottom - this._jeu.hauteur}};
 		
-		if(!(this._largeur == this._jeu.largeur && this._largeur < this._hauteur)) this._zoom.left = Math.round(Math.min(Math.max(Math.min(this._zoom.left - delta.left, ((adapt.X.t) ? adapt.X.vfi : this._zoom.right) - 9), ((this._deplacementLibre) ? (((adapt.X.t) ? this._zoom.right : adapt.X.vfo) + 1) : 0)), (this._deplacementLibre) ? this._zoom.left + Math.abs(delta.left) : this._jeu.largeur - 10) + this._jeu.largeur) % this._jeu.largeur;
+		if(!(this._largeur == this._jeu.largeur && this._largeur < this._hauteur)) this._zoom.left = Math.round(Math.min(Math.max(Math.min(this._zoom.left - delta.left, ((adapt.X.t) ? adapt.X.vfi : this._zoom.right) - 9), ((this.deplacementLibre) ? (((adapt.X.t) ? this._zoom.right : adapt.X.vfo) + 1) : 0)), (this.deplacementLibre) ? this._zoom.left + Math.abs(delta.left) : this._jeu.largeur - 10) + this._jeu.largeur) % this._jeu.largeur;
 		
-		if(!(this._hauteur == this._jeu.hauteur && this._hauteur < this._largeur)) this._zoom.top = Math.round(Math.min(Math.max(Math.min(this._zoom.top - delta.top, ((adapt.Y.t) ? adapt.Y.vfi : this._zoom.bottom) - 9), ((this._deplacementLibre) ? (((adapt.Y.t) ? this._zoom.bottom : adapt.Y.vfo) + 1) : 0)), (this._deplacementLibre) ? this._zoom.top + Math.abs(delta.top) : this._jeu.hauteur - 10) + this._jeu.hauteur) % this._jeu.hauteur;
+		if(!(this._hauteur == this._jeu.hauteur && this._hauteur < this._largeur)) this._zoom.top = Math.round(Math.min(Math.max(Math.min(this._zoom.top - delta.top, ((adapt.Y.t) ? adapt.Y.vfi : this._zoom.bottom) - 9), ((this.deplacementLibre) ? (((adapt.Y.t) ? this._zoom.bottom : adapt.Y.vfo) + 1) : 0)), (this.deplacementLibre) ? this._zoom.top + Math.abs(delta.top) : this._jeu.hauteur - 10) + this._jeu.hauteur) % this._jeu.hauteur;
 		
 		this._zoom.right = (this._zoom.left + Math.min(this._zoom.zoom, this._jeu.largeur - 1)) % this._jeu.largeur;
 		this._zoom.bottom = (this._zoom.top + Math.min(this._zoom.zoom, this._jeu.hauteur - 1)) % this._jeu.hauteur;

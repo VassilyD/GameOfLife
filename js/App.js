@@ -2,7 +2,7 @@
 function myApp() {
 	if(isToucheEnfonce) {
 		canvas.zoomViaClavier();
-		canvas.deplacementCanvasPre();
+		canvas.deplacementCanvasClavier();
 	}
 	
 	canvas.dessinerCanvas();
@@ -58,7 +58,10 @@ window.onload = function() {
 		launcherHTML.innerHTML = 'Play';
 	}
 
-	document.getElementById("deplacementLibre").onclick = function() {canvas.deplacement()};
+	document.getElementById("deplacementLibre").onclick = function() {
+		if(!canvas.deplacementLibre) selecteurOutilElementHTML[0].checked = true;
+		canvas.deplacement();
+	}
 
 	document.getElementById("onePass").onclick = function() {
 		jeu.nouveauCycle();
@@ -68,7 +71,7 @@ window.onload = function() {
 	vitesseSelecteurHTML.value = vitesseSelecteurHTML.defaultValue;
 	
 	selecteurOutilHTML.oninput = selectionOutil;
-	selecteurOutilElementHTML[1].checked = true;
+	selecteurOutilElementHTML[0].checked = true;
 
 
 	window.addEventListener('keydown', function (e) {
