@@ -26,6 +26,12 @@ function selectionOutil() {
 	});
 }
 
+function selectionConnections() {
+	selecteurConnectionsElementHTML.forEach(function(item, index) {
+		if(item.checked) jeu.connections = item.value*1;
+	});
+}
+
 //Génération du selecteur
 function selectionPatternFinal(e){
 	var selectLVL1 = document.getElementById('patternsLVL1');

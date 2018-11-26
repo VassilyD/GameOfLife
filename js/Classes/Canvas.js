@@ -122,12 +122,14 @@ class Canvas {
 						for(var col = 0; col < patternActuel[ligne].length; col++){
 							// xRel et yRel permettent de connecter les bord entre eux
 							if(true || patternActuel[ligne][col]) {
-								var xRel = this._coordMouse.x + col;
-								xRel = (((xRel >= this._jeu._largeur) ? (xRel - this._jeu._largeur) : (xRel < 0) ? xRel + this._jeu._largeur : xRel) - this._zoom.left + this._jeu.largeur) % this._jeu.largeur;
-								var yRel = this._coordMouse.y + ligne;
-								yRel = (((yRel >= this._jeu._hauteur) ? (yRel - this._jeu._hauteur) : (yRel < 0) ? yRel + this._jeu._hauteur : yRel) - this._zoom.top + this._jeu.hauteur) % this._jeu.hauteur;
-								this._canvasOutils.fillStyle = (patternActuel[ligne][col]) ? 'rgba(255,0,0,0.8)' : 'rgba(64,64,64,0.8)';
-								this._canvasOutils.fillRect(xRel * this._taillePixel, yRel * this._taillePixel, this._taillePixel, this._taillePixel);
+								var xRel = (this._coordMouse.x + col) % Math.pow(this._jeu.largeur, (this._jeu.connectionEO) ? 1 : 2);
+								xRel = (xRel >= this._jeu.largeur) ? -1 : xRel - this._zoom.left;
+								var yRel = (this._coordMouse.y + ligne) % Math.pow(this._jeu.hauteur, (this._jeu.connectionNS) ? 1 : 2);
+								yRel = (yRel >= this._jeu.hauteur) ? -1 : yRel - this._zoom.top;
+								if(xRel != -1 && yRel != -1) {
+									this._canvasOutils.fillStyle = (patternActuel[ligne][col]) ? 'rgba(255,0,0,0.8)' : 'rgba(64,64,64,0.8)';
+									this._canvasOutils.fillRect(xRel * this._taillePixel, yRel * this._taillePixel, this._taillePixel, this._taillePixel);
+								}
 							}
 						}
 					}
@@ -209,8 +211,8 @@ class Canvas {
 			case 'patron':
 				for(var ligne = 0; ligne < patternActuel.length; ligne++){
 					for(var col = 0; col < patternActuel[ligne].length; col++){
-						var xRel = (this._coordMouse.x + col) % this._jeu.largeur;
-						var yRel = (this._coordMouse.y + ligne) % this._jeu.hauteur;
+						var xRel = (this._coordMouse.x + col) %  Math.pow(this._jeu.largeur, (this._jeu.connectionEO) ? 1 : 2);
+						var yRel = (this._coordMouse.y + ligne) % Math.pow(this._jeu.hauteur, (this._jeu.connectionNS) ? 1 : 2);
 						this._jeu.setCell(yRel, xRel, patternActuel[ligne][col]);
 					}
 				}
@@ -221,7 +223,6 @@ class Canvas {
 				break;
 			
 			case 'deplacement':
-				this.deplacementDebut = {x: this._coordMouse.xRel, y: this._coordMouse.yRel};
 				break;
 				
 			default:
@@ -266,21 +267,21 @@ class Canvas {
 	deplacementCanvas(direction) {
 		var delta = {x:Math.max(1, Math.round(this._largeur / 50)), y:Math.max(1, Math.round(this._hauteur / 50))};
 		if(direction[0] != 0) {
-			if(!this.deplacementLibre) {
-				this._zoom.left = Math.min(Math.max(this._zoom.left + direction[0] * delta.x, 0),  this._jeu.largeur - this._largeur);
-				this._zoom.right = Math.min(Math.max(this._zoom.right + direction[0] * delta.x, this._largeur - 1),  this._jeu.largeur - 1);
-			} else {
+			if(this.deplacementLibre && this._jeu.connectionEO) {
 				this._zoom.left = (this._zoom.left + direction[0] * delta.x + this._jeu.largeur) % this._jeu.largeur;
 				this._zoom.right = (this._zoom.right + direction[0] * delta.x + this._jeu.largeur) % this._jeu.largeur;
+			} else {
+				this._zoom.left = Math.min(Math.max(this._zoom.left + direction[0] * delta.x, 0),  this._jeu.largeur - this._largeur);
+				this._zoom.right = Math.min(Math.max(this._zoom.right + direction[0] * delta.x, this._largeur - 1),  this._jeu.largeur - 1);
 			}
 		}
 		if(direction[1] != 0) {
-			if(!this.deplacementLibre) {
-				this._zoom.top = Math.min(Math.max(this._zoom.top + direction[1] * delta.y, 0),  this._jeu.hauteur - this._hauteur);
-				this._zoom.bottom = Math.min(Math.max(this._zoom.bottom + direction[1] * delta.y, this._hauteur - 1),  this._jeu.hauteur - 1);
-			} else {
+			if(this.deplacementLibre && this._jeu.connectionNS) {
 				this._zoom.top = (this._zoom.top + direction[1] * delta.y + this._jeu.hauteur) % this._jeu.hauteur;
 				this._zoom.bottom = (this._zoom.bottom + direction[1] * delta.y + this._jeu.hauteur) % this._jeu.hauteur;
+			} else {
+				this._zoom.top = Math.min(Math.max(this._zoom.top + direction[1] * delta.y, 0),  this._jeu.hauteur - this._hauteur);
+				this._zoom.bottom = Math.min(Math.max(this._zoom.bottom + direction[1] * delta.y, this._hauteur - 1),  this._jeu.hauteur - 1);
 			}
 		}
 		if(!(this._jeu.isAlive && (this._jeu.vitesse < 50 || this._jeu.vitesse >= 50 && this._jeu._fps[10] - this._jeu._fps[9] > this._jeu.vitesse * 1.2))) {
@@ -329,8 +330,8 @@ class Canvas {
 		var deltaWheel = e.deltaY / Math.abs(e.deltaY); // molette vers l'avant = -1 = zoom in, molette vers l'arrière = 1 = zoom out
 		
 		var delta = {	
-			left:deltaWheel * ((!this.deplacementLibre && deltaWheel == 1 && deltaRatio * (1 - coordMouseRatio.x) >= this._jeu.largeur - 1 - this._zoom.right) ? deltaRatio * 2 + this._zoom.right - (this._jeu.largeur - 1) : deltaRatio * (1 + coordMouseRatio.x)),
-			top:deltaWheel * ((!this.deplacementLibre && deltaWheel == 1 && deltaRatio * (1 - coordMouseRatio.y) >= this._jeu.hauteur - 1 - this._zoom.bottom) ? deltaRatio * 2 + this._zoom.bottom - (this._jeu.hauteur - 1) : deltaRatio * (1 + coordMouseRatio.y))};
+			left:deltaWheel * (((!this.deplacementLibre || !this._jeu.connectionEO) && deltaWheel == 1 && deltaRatio * (1 - coordMouseRatio.x) >= this._jeu.largeur - 1 - this._zoom.right) ? deltaRatio * 2 + this._zoom.right - (this._jeu.largeur - 1) : deltaRatio * (1 + coordMouseRatio.x)),
+			top:deltaWheel * (((!this.deplacementLibre || !this._jeu.connectionNS) && deltaWheel == 1 && deltaRatio * (1 - coordMouseRatio.y) >= this._jeu.hauteur - 1 - this._zoom.bottom) ? deltaRatio * 2 + this._zoom.bottom - (this._jeu.hauteur - 1) : deltaRatio * (1 + coordMouseRatio.y))};
 		
 		this._zoom.zoom = Math.min(Math.max(this._zoom.zoom + deltaWheel * 2 * deltaRatio, 9), Math.max(this._jeu.largeur - 1, this._jeu.hauteur - 1));
 		
@@ -340,9 +341,9 @@ class Canvas {
 		var adapt = {	X:{t: this._zoom.right < this._zoom.left, vfi: this._zoom.right + this._jeu.largeur, vfo: this._zoom.right - this._jeu.largeur}, 
 						Y:{t: this._zoom.bottom < this._zoom.top, vfi: this._zoom.bottom + this._jeu.hauteur, vfo: this._zoom.bottom - this._jeu.hauteur}};
 		
-		if(!(this._largeur == this._jeu.largeur && this._largeur < this._hauteur)) this._zoom.left = Math.round(Math.min(Math.max(Math.min(this._zoom.left - delta.left, ((adapt.X.t) ? adapt.X.vfi : this._zoom.right) - 9), ((this.deplacementLibre) ? (((adapt.X.t) ? this._zoom.right : adapt.X.vfo) + 1) : 0)), (this.deplacementLibre) ? this._zoom.left + Math.abs(delta.left) : this._jeu.largeur - 10) + this._jeu.largeur) % this._jeu.largeur;
+		if(!(this._largeur == this._jeu.largeur && this._largeur < this._hauteur)) this._zoom.left = Math.round(Math.min(Math.max(Math.min(this._zoom.left - delta.left, ((adapt.X.t) ? adapt.X.vfi : this._zoom.right) - 9), ((this.deplacementLibre && this._jeu.connectionEO) ? (((adapt.X.t) ? this._zoom.right : adapt.X.vfo) + 1) : 0)), (this.deplacementLibre && this._jeu.connectionEO) ? this._zoom.left + Math.abs(delta.left) : this._jeu.largeur - 10) + this._jeu.largeur) % this._jeu.largeur;
 		
-		if(!(this._hauteur == this._jeu.hauteur && this._hauteur < this._largeur)) this._zoom.top = Math.round(Math.min(Math.max(Math.min(this._zoom.top - delta.top, ((adapt.Y.t) ? adapt.Y.vfi : this._zoom.bottom) - 9), ((this.deplacementLibre) ? (((adapt.Y.t) ? this._zoom.bottom : adapt.Y.vfo) + 1) : 0)), (this.deplacementLibre) ? this._zoom.top + Math.abs(delta.top) : this._jeu.hauteur - 10) + this._jeu.hauteur) % this._jeu.hauteur;
+		if(!(this._hauteur == this._jeu.hauteur && this._hauteur < this._largeur)) this._zoom.top = Math.round(Math.min(Math.max(Math.min(this._zoom.top - delta.top, ((adapt.Y.t) ? adapt.Y.vfi : this._zoom.bottom) - 9), ((this.deplacementLibre && this._jeu.connectionNS) ? (((adapt.Y.t) ? this._zoom.bottom : adapt.Y.vfo) + 1) : 0)), (this.deplacementLibre && this._jeu.connectionNS) ? this._zoom.top + Math.abs(delta.top) : this._jeu.hauteur - 10) + this._jeu.hauteur) % this._jeu.hauteur;
 		
 		this._zoom.right = (this._zoom.left + Math.min(this._zoom.zoom, this._jeu.largeur - 1)) % this._jeu.largeur;
 		this._zoom.bottom = (this._zoom.top + Math.min(this._zoom.zoom, this._jeu.hauteur - 1)) % this._jeu.hauteur;

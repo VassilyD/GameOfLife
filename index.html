@@ -21,6 +21,13 @@
 		<br/><br/>
 		Vitesse : <input id="vitesseSelecteur" type="range" min="4" max="120" step="1" value="30"><span id="vitesseAffiche">30 FPS</span></input>
 		<br/><br/>
+		<div id="selecteurConnections">Connections des bords :
+			<label><input type="radio" name="connectionGroupe" value="3" checked>Nord-Sud + Est-Ouest</label> | 
+			<label><input type="radio" name="connectionGroupe" value="2">Nord-Sud</label> | 
+			<label><input type="radio" name="connectionGroupe" value="1">Est-Ouest</label> | 
+			<label><input type="radio" name="connectionGroupe" value="0">aucune</label>
+		</div>
+		<br>
 		<form id="tailleSelecteur">
 			Hauteur : <input type="number" name="hauteur" min="10" step="1"/>
 			Largeur : <input type="number" name="largeur" min="10" step="1"/>

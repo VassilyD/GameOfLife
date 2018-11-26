@@ -7,6 +7,7 @@ let afficheTestHTML;
 let launcherHTML;
 let grapheCanvasHTML;
 let selecteurOutilHTML, selecteurOutilElementHTML;
+let selecteurConnectionsHTML, selecteurConnectionsElementHTML;
 
 let myAppInterval = 0;
 let deplacementInterval = 0;

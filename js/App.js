@@ -23,6 +23,8 @@ window.onload = function() {
 	grapheCanvasHTML = document.getElementById('grapheCanvas');
 	selecteurOutilHTML = document.getElementById('selecteurOutil');
 	selecteurOutilElementHTML = document.getElementsByName('outilsGroupe');
+	selecteurConnectionsHTML = document.getElementById('selecteurConnections');
+	selecteurConnectionsElementHTML = document.getElementsByName('connectionGroupe');
 	
 	tailleSelecteurHTML.elements[0].value = 250;
 	tailleSelecteurHTML.elements[1].value = 250;
@@ -75,6 +77,9 @@ window.onload = function() {
 	
 	selecteurOutilHTML.oninput = selectionOutil;
 	selecteurOutilElementHTML[0].checked = true;
+
+	selecteurConnectionsHTML.oninput = selectionConnections;
+	selecteurConnectionsElementHTML[0].checked = true;
 
 
 	window.addEventListener('keydown', function (e) {

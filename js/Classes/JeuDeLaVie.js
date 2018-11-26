@@ -4,13 +4,15 @@ class JeuDeLaVie {
 		this._hauteur = hauteur;
 		this._somme = []; 
 		this._grille = []; 
-		this._vitesse = 30;
+		this._vitesse = 33.34;
 		this._nbGeneration = 0;
 		this._nbVivant = 0;
 		this._nbVivantHistorique = [];
 		this._nbVivantMax = 0;
 		this._interval = 0;
 		this._isAlive = false;
+		this._connectionNordSud = true;
+		this._connectionEstOuest = true;
 		this._fps = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 		
 		this.setJeu(largeur, hauteur);
@@ -48,6 +50,17 @@ class JeuDeLaVie {
 		if(j != 0) fps /= (j);
 		return (Math.floor(100000 / fps) / 100);
 	}
+	
+	get connections() {
+		var connectionSomme = 0;
+		if(this._connectionEstOuest) connectionSomme += 1;
+		if(this._connectionNordSud) connectionSomme += 2;
+		return connectionSomme;
+	}
+	
+	get connectionNS() {return this._connectionNordSud}
+	
+	get connectionEO() {return this._connectionEstOuest}
 	
 	nbVivantVariation(Gen = -1) {
 		if(Gen < 0) return this.nbVivant - (this._nbVivantHistorique[this.nbGeneration - 1] || 0);
@@ -88,6 +101,11 @@ class JeuDeLaVie {
 		}
 	}
 
+	set connections(connectionSomme) {
+		this._connectionNordSud = ((connectionSomme & 2) == 2) ? true : false;
+		this._connectionEstOuest = ((connectionSomme & 1) == 1) ? true : false;
+	}
+	
 	
 	
 	setCell(ligne, colonne, etat) {
@@ -163,9 +181,9 @@ class JeuDeLaVie {
 			var jFin = colonne + 1;
 			while (!aVoisin &&  j <= jFin) {
 				// valeur relative = connecte les bords (exemple si i = -1 avec une hauteur de 10, -1 +10 = 9 et 9 % 10 = 9 ce qui correspond à la dernière ligne)
-				iRelatif = (i < 0) ? this._hauteur - 1 : (i < this._hauteur) ? i : 0;
-				jRelatif = (j < 0) ? this._largeur - 1 : (j < this._largeur) ? j : 0;
-				if(this._grille[iRelatif] && this._grille[iRelatif][jRelatif]) aVoisin = true;
+				iRelatif = (i < 0) ? ((this.connectionNS) ? this._hauteur - 1 : -1) : (i < this._hauteur) ? i : (this.connectionNS) ? 0 : -1;
+				jRelatif = (j < 0) ? ((this.connectionEO) ? this._largeur - 1 : -1) : (j < this._largeur) ? j : (this.connectionEO) ? 0 : -1;
+				if(iRelatif != -1 && jRelatif != -1 && this._grille[iRelatif] && this._grille[iRelatif][jRelatif]) aVoisin = true;
 				j++
 			}
 			i++;
@@ -175,14 +193,14 @@ class JeuDeLaVie {
 
 	// Ajoute +1 à la somme des voisins de chaque cellule voisine de la cellule indiqué
 	ajouterVoisin(ligne, colonne) {
-		var iRelatif = 0;
-		var jRelatif = 0;
+		var yRel = 0;
+		var xRel = 0;
 		for (var i = ligne - 1, iFin = ligne + 1; i <= iFin; i++) {
 			for (var j = colonne - 1, jFin = colonne + 1; j <= jFin; j++) {
 				// valeur relative = connecte les bords (exemple si i = -1 avec une hauteur de 10, -1 +10 = 9 et 9 % 10 = 9 ce qui correspond à la dernière ligne)
-				iRelatif = (i < 0) ? this._hauteur - 1 : (i < this._hauteur) ? i : 0;
-				jRelatif = (j < 0) ? this._largeur - 1 : (j < this._largeur) ? j : 0;
-				this._somme[iRelatif][jRelatif]++;
+				yRel = (i < 0) ? ((this.connectionNS) ? this._hauteur - 1 : -1) : (i < this._hauteur) ? i : (this.connectionNS) ? 0 : -1;
+				xRel = (j < 0) ? ((this.connectionEO) ? this._largeur - 1 : -1) : (j < this._largeur) ? j : (this.connectionEO) ? 0 : -1;
+				if(yRel != -1 && xRel != -1) this._somme[yRel][xRel]++;
 			}
 		}
 		this._somme[ligne][colonne]--;
