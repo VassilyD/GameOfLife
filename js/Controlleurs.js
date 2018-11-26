@@ -33,6 +33,20 @@ function selectionConnections() {
 	canvas.deplacementCanvas([0,0]);
 }
 
+function changerReglesNaissance() {
+	jeu._reglesNaissance = [];
+	selecteurReglesNaissanceElementHTML.forEach(function(item, index) {
+		if(selecteurReglesNaissanceElementHTML[index].checked) jeu._reglesNaissance.push(item.value*1);
+	});
+}
+
+function changerReglesSurvie() {
+	jeu._reglesSurvie = [];
+	selecteurReglesSurvieElementHTML.forEach(function(item, index) {
+		if(selecteurReglesSurvieElementHTML[index].checked) jeu._reglesSurvie.push(item.value*1);
+	});
+}
+
 //Génération du selecteur
 function selectionPatternFinal(e){
 	var selectLVL1 = document.getElementById('patternsLVL1');

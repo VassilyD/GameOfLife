@@ -8,6 +8,8 @@ let launcherHTML;
 let grapheCanvasHTML;
 let selecteurOutilHTML, selecteurOutilElementHTML;
 let selecteurConnectionsHTML, selecteurConnectionsElementHTML;
+let selecteurReglesNaissanceHTML, selecteurReglesNaissanceElementHTML;
+let selecteurReglesSurvieHTML, selecteurReglesSurvieElementHTML;
 
 let myAppInterval = 0;
 let deplacementInterval = 0;

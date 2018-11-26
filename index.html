@@ -19,7 +19,7 @@
 		<button id="onePass">Baby step</button>
 		<button id="respawn">Respawn</button>
 		<br/><br/>
-		Vitesse : <input id="vitesseSelecteur" type="range" min="4" max="120" step="1" value="30"><span id="vitesseAffiche">30 FPS</span></input>
+		Vitesse : <input id="vitesseSelecteur" type="range" min="4" max="120" step="1" value="30"><span id="vitesseAffiche">30 FPS </span></input> <span id="fill"></span>
 		<br/><br/>
 		<div id="selecteurConnections">Connections des bords :
 			<label><input type="radio" name="connectionGroupe" value="3" checked>Nord-Sud + Est-Ouest</label> | 
@@ -47,9 +47,46 @@
 			<input type="radio" name="outilsGroupe" value="creer patron" disabled> Creer patron
 			<br><br>
 		</div>
+		<table>
+			<tr>
+				<th>Somme des voisins vivants</th>
+				<th>0</th>
+				<th>1</th>
+				<th>2</th>
+				<th>3</th>
+				<th>4</th>
+				<th>5</th>
+				<th>6</th>
+				<th>7</th>
+				<th>8</th>
+			</tr>
+			<tr id="selecteurReglesNaissance">
+				<td>Règles pour la naissance des cellules :</td>
+				<td><input type="checkbox" name="regleNaissance" value="0"></td>
+				<td><input type="checkbox" name="regleNaissance" value="1"></td>
+				<td><input type="checkbox" name="regleNaissance" value="2"></td>
+				<td><input type="checkbox" name="regleNaissance" value="3" checked></td>
+				<td><input type="checkbox" name="regleNaissance" value="4"></td>
+				<td><input type="checkbox" name="regleNaissance" value="5"></td>
+				<td><input type="checkbox" name="regleNaissance" value="6"></td>
+				<td><input type="checkbox" name="regleNaissance" value="7"></td>
+				<td><input type="checkbox" name="regleNaissance" value="8"></td>
+			</tr>
+			<tr id="selecteurReglesSurvie">
+				<td>Règles pour la survie des cellules :</td>
+				<td><input type="checkbox" name="regleSurvie" value="0"></td>
+				<td><input type="checkbox" name="regleSurvie" value="1"></td>
+				<td><input type="checkbox" name="regleSurvie" value="2" checked></td>
+				<td><input type="checkbox" name="regleSurvie" value="3" checked></td>
+				<td><input type="checkbox" name="regleSurvie" value="4"></td>
+				<td><input type="checkbox" name="regleSurvie" value="5"></td>
+				<td><input type="checkbox" name="regleSurvie" value="6"></td>
+				<td><input type="checkbox" name="regleSurvie" value="7"></td>
+				<td><input type="checkbox" name="regleSurvie" value="8"></td>
+			</tr>
+		</table>
 		<p>Utiliser la molette de la sourie ou les touches + et - pour zoomer/dézoomer</p>
 		<p id="infoStats"></p>
-		<p id="fill"></p>
 		<p id="testtt"></p>
 	</div>
 	

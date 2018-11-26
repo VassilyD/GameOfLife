@@ -13,6 +13,8 @@ class JeuDeLaVie {
 		this._isAlive = false;
 		this._connectionNordSud = true;
 		this._connectionEstOuest = true;
+		this._reglesNaissance = [3];
+		this._reglesSurvie = [2, 3];
 		this._fps = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 		
 		this.setJeu(largeur, hauteur);
@@ -246,7 +248,8 @@ class JeuDeLaVie {
 		for (ligne = this._grille[0], ligneS = this._somme[0], y = 0, hauteur = this._hauteur; y < hauteur; y++, ligne = this._grille[y], ligneS = this._somme[y]) {
 			for (cellule = ligne[0], celluleS = ligneS[0], x = 0, largeur = this._largeur; x < largeur; x++, cellule = ligne[x], celluleS = ligneS[x]) {
 				/* Actualise la grille à partir de la somme des voisin de chaque cellule et compte le nombre de cellule vivante */
-				var nouveauStatut = (celluleS == 3 || (cellule && celluleS == 2));
+				// var nouveauStatut = (celluleS == 3 || (cellule && celluleS == 2));
+				var nouveauStatut = (!cellule && this._reglesNaissance.indexOf(celluleS) != -1 || cellule && this._reglesSurvie.indexOf(celluleS) != -1);
 				if(cellule != nouveauStatut) {
 					ligne[x] = nouveauStatut;
 					estStable = false;

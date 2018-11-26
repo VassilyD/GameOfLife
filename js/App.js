@@ -8,7 +8,7 @@ function myApp() {
 	canvas.dessinerCanvas();
 	
 	infoStatsHTML.innerHTML = 'Génération ' + jeu.nbGeneration + ' : ' + jeu.nbVivant + ' Cellule vivante (' + ((jeu.nbVivantVariation(-1) >= 0) ? '+' : '') + (jeu.nbVivantVariation(-1)) + '), max : ' + jeu.nbVivantMax;
-	afficheTestHTML.innerHTML = (jeu.isAlive) ? jeu.fps + ' FPS' : '';
+	afficheTestHTML.innerHTML = (jeu.isAlive) ? ' (' + jeu.fps + ' FPS)' : '';
 }
 
 /************* Initialisation *************/
@@ -25,6 +25,10 @@ window.onload = function() {
 	selecteurOutilElementHTML = document.getElementsByName('outilsGroupe');
 	selecteurConnectionsHTML = document.getElementById('selecteurConnections');
 	selecteurConnectionsElementHTML = document.getElementsByName('connectionGroupe');
+	selecteurReglesNaissanceHTML = document.getElementById('selecteurReglesNaissance');
+	selecteurReglesNaissanceElementHTML = document.getElementsByName('regleNaissance');
+	selecteurReglesSurvieHTML = document.getElementById('selecteurReglesSurvie');
+	selecteurReglesSurvieElementHTML = document.getElementsByName('regleSurvie');
 	
 	tailleSelecteurHTML.elements[0].value = 250;
 	tailleSelecteurHTML.elements[1].value = 250;
@@ -80,6 +84,19 @@ window.onload = function() {
 
 	selecteurConnectionsHTML.oninput = selectionConnections;
 	selecteurConnectionsElementHTML[0].checked = true;
+	
+	selecteurReglesNaissanceHTML.oninput = changerReglesNaissance;
+	selecteurReglesNaissanceElementHTML.forEach(function(item, index) {
+		selecteurReglesNaissanceElementHTML[index].checked = false;
+	});
+	selecteurReglesNaissanceElementHTML[3].checked = true;
+	
+	selecteurReglesSurvieHTML.oninput = changerReglesSurvie;
+	selecteurReglesSurvieElementHTML.forEach(function(item, index) {
+		selecteurReglesSurvieElementHTML[index].checked = false;
+	});
+	selecteurReglesSurvieElementHTML[2].checked = true;
+	selecteurReglesSurvieElementHTML[3].checked = true;
 
 
 	window.addEventListener('keydown', function (e) {
