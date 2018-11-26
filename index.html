@@ -28,10 +28,16 @@
 			<input type="button" id="tailleSelecteurBouton" value="Valider"/>
 		</form>
 		<br/>
+		<form id="selecteurOutil">
+			<input type="radio" name="outilsGroupe" value="deplacement" disabled> Déplacement <br>
+				
+			<input type="radio" name="outilsGroupe" value="dessin" checked> Dessiner <br>
+			<input type="radio" name="outilsGroupe" value="patron"> Appliquer patron <br>
+			<input type="radio" name="outilsGroupe" value="creer patron" disabled> Creer patron <br>
+		</form>
 		<form id="patternSelecteur">
 		</form>
 		<p>Maintenir alt enfoncé pour effacer les cases</p>
-		<p>Maintenir shift enfoncé pour poser un patron</p>
 		<p>Utiliser la molette de la sourie ou les touches + et - pour zoomer/dézoomer sur la grille</p>
 		<p>Utiliser les touches fléchées pour déplacer la vue de la grille lors d'un zoom</p>
 		<p id="infoStats"></p>

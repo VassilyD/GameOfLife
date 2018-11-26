@@ -21,6 +21,8 @@ window.onload = function() {
 	afficheTestHTML = document.getElementById("fill");
 	launcherHTML = document.getElementById("launcher");
 	grapheCanvasHTML = document.getElementById('grapheCanvas');
+	selecteurOutilHTML = document.getElementById('selecteurOutil');
+	selecteurOutilElementHTML = document.getElementsByName('outilsGroupe');
 	
 	tailleSelecteurHTML.elements[0].value = 250;
 	tailleSelecteurHTML.elements[1].value = 250;
@@ -46,14 +48,14 @@ window.onload = function() {
 	document.getElementById("nuke").onclick = function() {
 		jeu.reset('vide');
 		canvas.dessinerJeu();
-		grapheCanvas.dessinerGraphe();
+		grapheCanvas.calculerDimensions();
 		launcherHTML.innerHTML = 'Play';
 	}
 
 	document.getElementById("respawn").onclick = function() {
 		jeu.reset('aleatoire');
 		canvas.dessinerJeu();
-		grapheCanvas.dessinerGraphe();
+		grapheCanvas.calculerDimensions();
 		launcherHTML.innerHTML = 'Play';
 	}
 
@@ -64,6 +66,10 @@ window.onload = function() {
 	};
 
 	vitesseSelecteurHTML.oninput = changerVitesse;
+	vitesseSelecteurHTML.value = vitesseSelecteurHTML.defaultValue;
+	
+	selecteurOutilHTML.oninput = selectionOutil;
+	selecteurOutilElementHTML[1].checked = true;
 
 
 	window.addEventListener('keydown', function (e) {

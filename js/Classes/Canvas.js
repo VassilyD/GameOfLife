@@ -12,8 +12,8 @@ class Canvas {
 		this._coordMouse = {x:-1, y:-1, xRel:-1, yRel:-1};
 		this._mouseOver = false;
 		this._deplacementLibre = false;
-		this._outilsTable = [];
-		this.outilsTable = 1;
+		// this._estEnTrainDeDessiner = false; // Useless
+		this._outils = 'dessin';
 		if(estEditable) {
 			this._canvasOutilsHTML.onmousemove = function(event) {this.mouseMove(event)}.bind(this);
 			this._canvasOutilsHTML.onmousedown = function(event) {this.paintingStart(event)}.bind(this);
@@ -26,6 +26,11 @@ class Canvas {
 		this.calculerDimension();
 	}
 	
+	// Useless
+	// get dessine() {return this._estEnTrainDeDessiner};
+	
+	get outils() {return this._outils}
+	
 	set zoom(zoom) {
 		this._zoom.left = Math.abs(zoom.left) % this._jeu.largeur;
 		this._zoom.right = Math.abs(zoom.right) % this._jeu.largeur;
@@ -35,26 +40,16 @@ class Canvas {
 		this._zoom.zoom = Math.max(this._largeur - 1, this._hauteur - 1)
 	}
 	
-	set outilsTable(mode) {
-		if(mode == 0){
-			// this._outilsTable = [];
-			for(var ligne = 0; ligne < this._jeu.hauteur; ligne++) {
-				// this._outilsTable.push([]);
-				for(var colonne = 0; colonne < this._jeu.largeur; colonne++) {
-					if(this._outilsTable[ligne][colonne]) this._outilsTable[ligne][colonne] = 0;
-				}
-			}
-		}
-		else if(mode == 1){
-			this._outilsTable = [];
-			for(var ligne = 0; ligne < this._jeu.hauteur; ligne++) {
-				this._outilsTable.push([]);
-				for(var colonne = 0; colonne < this._jeu.largeur; colonne++) {
-					this._outilsTable[ligne].push(0);
-				}
-			}
-		}
+	set outils(outils) {
+		if(['deplacement', 'dessin', 'patron', 'creer patron'].indexOf(outils) != -1) this._outils = outils;
 	}
+	
+	// Useless
+	// set dessine(estEnTrainDeDessiner) {
+		// estEnTrainDeDessiner = !!estEnTrainDeDessiner;
+		// this._estEnTrainDeDessiner = estEnTrainDeDessiner;
+	// }
+	
 	// Affiche la grille de cellule
 	dessinerJeu(){
 		
@@ -114,27 +109,30 @@ class Canvas {
 			// }
 		// }
 		if(this._mouseOver) {
-			if(shiftPressed) {
-				for(var ligne = 0; ligne < patternActuel.length; ligne++){
-					for(var col = 0; col < patternActuel[ligne].length; col++){
-						// xRel et yRel permettent de connecter les bord entre eux
-						if(true || patternActuel[ligne][col]) {
-							var xRel = this._coordMouse.x + col;
-							xRel = (((xRel >= this._jeu._largeur) ? (xRel - this._jeu._largeur) : (xRel < 0) ? xRel + this._jeu._largeur : xRel) - this._zoom.left + this._jeu.largeur) % this._jeu.largeur;
-							var yRel = this._coordMouse.y + ligne;
-							yRel = (((yRel >= this._jeu._hauteur) ? (yRel - this._jeu._hauteur) : (yRel < 0) ? yRel + this._jeu._hauteur : yRel) - this._zoom.top + this._jeu.hauteur) % this._jeu.hauteur;
-							this._canvasOutils.fillStyle = (patternActuel[ligne][col]) ? 'rgba(255,0,0,0.9)' : 'rgba(0,255,0,0.9)';
-							this._canvasOutils.fillRect(xRel * this._taillePixel, yRel * this._taillePixel, this._taillePixel, this._taillePixel);
+			switch(this.outils) {
+				case 'patron':
+					for(var ligne = 0; ligne < patternActuel.length; ligne++){
+						for(var col = 0; col < patternActuel[ligne].length; col++){
+							// xRel et yRel permettent de connecter les bord entre eux
+							if(true || patternActuel[ligne][col]) {
+								var xRel = this._coordMouse.x + col;
+								xRel = (((xRel >= this._jeu._largeur) ? (xRel - this._jeu._largeur) : (xRel < 0) ? xRel + this._jeu._largeur : xRel) - this._zoom.left + this._jeu.largeur) % this._jeu.largeur;
+								var yRel = this._coordMouse.y + ligne;
+								yRel = (((yRel >= this._jeu._hauteur) ? (yRel - this._jeu._hauteur) : (yRel < 0) ? yRel + this._jeu._hauteur : yRel) - this._zoom.top + this._jeu.hauteur) % this._jeu.hauteur;
+								this._canvasOutils.fillStyle = (patternActuel[ligne][col]) ? 'rgba(255,0,0,0.8)' : 'rgba(64,64,64,0.8)';
+								this._canvasOutils.fillRect(xRel * this._taillePixel, yRel * this._taillePixel, this._taillePixel, this._taillePixel);
+							}
 						}
 					}
-				}
-			}
-			else {
-				this._canvasOutils.fillStyle = 'rgba(255,0,0,0.9)';
-				this._canvasOutils.fillRect(this._coordMouse.xRel * this._taillePixel, 
-											this._coordMouse.yRel * this._taillePixel, 
-											this._taillePixel, 
-											this._taillePixel);
+					break;
+					
+				case 'dessin':
+					this._canvasOutils.fillStyle = 'rgba(255,0,0,0.9)';
+					this._canvasOutils.fillRect(this._coordMouse.xRel * this._taillePixel, this._coordMouse.yRel * this._taillePixel, this._taillePixel, this._taillePixel);
+					break;
+					
+				default:
+					console.log('pas censé arriver ici ^^');
 			}
 		}
 	}
@@ -185,43 +183,41 @@ class Canvas {
 		this.positionSourieCanvas(e);
 		var coor = "Coordinates: (" + this._coordMouse.x + "," + this._coordMouse.y + ")";
 		document.getElementById("testtt").innerHTML = coor;
-		if(isPainting && !shiftPressed) {
+		if(e.buttons == 1 && this.outils == 'dessin') {
 			this._jeu.setCell(this._coordMouse.y, this._coordMouse.x, (e.altKey) ? false : true);
 			if(!this._jeu.isAlive) this.dessinerJeu();
 		}
-		if(shiftPressed) {
-			for(var ligne = 0; ligne < patternActuel.length; ligne++){
-				for(var colonne = 0; colonne < patternActuel[ligne].length; colonne++){
-					var xRel = (this._coordMouse.x + colonne) % this._jeu.largeur;
-					var yRel = (this._coordMouse.y + ligne) % this._jeu.hauteur;
-					this._outilsTable[yRel][xRel] = (patternActuel[ligne][colonne]) ? 2 : 1;
-				}
-			}
-		}
-		else this._outilsTable[this._coordMouse.y][this._coordMouse.x] = 2;
 		this.dessinerOutil();
 	}
 
 	paintingStart(e) {
-		isPainting = true;
+		this.dessine = true;
 		this.positionSourieCanvas(e);
-		if(shiftPressed) {
-			for(var ligne = 0; ligne < patternActuel.length; ligne++){
-				for(var col = 0; col < patternActuel[ligne].length; col++){
-					var xRel = (this._coordMouse.x + col) % this._jeu.largeur;
-					var yRel = (this._coordMouse.y + ligne) % this._jeu.hauteur;
-					this._jeu.setCell(yRel, xRel, patternActuel[ligne][col]);
+		
+		switch(this.outils) {
+			case 'patron':
+				for(var ligne = 0; ligne < patternActuel.length; ligne++){
+					for(var col = 0; col < patternActuel[ligne].length; col++){
+						var xRel = (this._coordMouse.x + col) % this._jeu.largeur;
+						var yRel = (this._coordMouse.y + ligne) % this._jeu.hauteur;
+						this._jeu.setCell(yRel, xRel, patternActuel[ligne][col]);
+					}
 				}
-			}
+				break;
+			
+			case 'dessin':
+				this._jeu.setCell(this._coordMouse.y, this._coordMouse.x, (e.altKey) ? false : true);
+				break;
+				
+			default:
+				console.log('Y a comme un soucie dans le choix des outils');
 		}
-		else {
-			this._jeu.setCell(this._coordMouse.y, this._coordMouse.x, (e.altKey) ? false : true);
-		}
+		
 		if(!this._jeu.isAlive) this.dessinerJeu();
 	}
 
 	mouseUp(e) {
-		isPainting = false;
+		this.dessine = false;
 	}
 
 	//Quand la sourie entre sur la grille
@@ -232,9 +228,8 @@ class Canvas {
 	//Quand la sourie quitte la grille
 	mouseLeave() {
 		this._mouseOver = false;
-		isPainting = false;
 		document.getElementById("testtt").innerHTML = '';
-		this._canvasOutils.clearRect(0, 0, this._canvasOutilsHTML.clientWidth, this._canvasOutilsHTML.clientHeight);
+		this.dessinerOutil();
 	}
 
 	deplacementCanvasPre() {

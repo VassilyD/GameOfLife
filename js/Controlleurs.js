@@ -20,6 +20,12 @@ function changerTaille() {
 	canvas.dessinerJeu();
 }
 
+function selectionOutil() {
+	selecteurOutilElementHTML.forEach(function(item, index) {
+		if(item.checked) canvas.outils = item.value;
+	});
+}
+
 //Génération du selecteur
 function selectionPatternFinal(e){
 	var selectLVL1 = document.getElementById('patternsLVL1');
