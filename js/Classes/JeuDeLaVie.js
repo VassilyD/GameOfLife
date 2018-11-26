@@ -262,6 +262,7 @@ class JeuDeLaVie {
 			this._interval = setInterval(function(){t.nouveauCycle()}, this._vitesse);
 			this._isAlive = true;
 		}
+		launcherHTML.innerHTML = (this.isAlive) ? 'Pause' : 'Play';
 	}
 	
 	reset(mode) {

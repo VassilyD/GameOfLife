@@ -31,6 +31,8 @@ function selectionPatternFinal(e){
 	var selectLVL1 = document.getElementById('patternsLVL1');
 	var selectLVL2 = document.getElementById('patternsLVL2');
 	patternActuel = patternList[selectLVL1.value][selectLVL2.value].slice();
+	
+	selecteurOutilElementHTML[2].checked = true;
 }
 
 function selectionSousPattern(e) {

@@ -263,6 +263,7 @@ class Canvas {
 		}
 		if(!(this._jeu.isAlive && (this._jeu.vitesse < 50 || this._jeu.vitesse >= 50 && this._jeu._fps[10] - this._jeu._fps[9] > this._jeu.vitesse * 1.2))) {
 			this.dessinerJeu();
+			console.log('toto');
 		}
 	}
 
@@ -283,6 +284,7 @@ class Canvas {
 			this._zoom.bottom = (this._zoom.bottom - delta + this._jeu.hauteur) % this._jeu.hauteur;
 		}
 		document.getElementById("deplacementLibre").innerHTML = (this._deplacementLibre) ? 'Désactiver déplacement libre' : 'Activer déplacement libre';
+		this.calculerDimension();
 	}
 
 	zoomViaClavier() {

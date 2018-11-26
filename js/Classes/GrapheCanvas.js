@@ -77,7 +77,8 @@ class GrapheCanvas {
 			nbVivantMoyen += this._jeu.nbVivantHistorique[i];
 			step++;
 			if(step % this._step == 0 || i == iFin) {
-				this._canvas.lineTo((i == iFin) ? this._canvasHTML.clientWidth : j * this._taillePixelX, height - nbVivantMoyen * this._taillePixelY / step);
+				if(i != iFin) this._canvas.lineTo(j * this._taillePixelX, height - nbVivantMoyen * this._taillePixelY / this._step)
+				else this._canvas.lineTo(this._canvasHTML.clientWidth, height - this._jeu.nbVivantHistorique[i] * this._taillePixelY);
 				nbVivantMoyen = 0;
 				step = 0;
 				j++;

@@ -42,7 +42,6 @@ window.onload = function() {
 
 	launcherHTML.onclick = function() {
 		jeu.lancer();
-		launcherHTML.innerHTML = (jeu.isAlive) ? 'Pause' : 'Play';
 	}
 
 	document.getElementById("nuke").onclick = function() {

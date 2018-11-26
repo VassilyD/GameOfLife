@@ -18,7 +18,6 @@
 		<button id="nuke">Nuke</button>
 		<button id="onePass">Baby step</button>
 		<button id="respawn">Respawn</button>
-		<button id="deplacementLibre">Activer Déplacement libre</button>
 		<br/><br/>
 		Vitesse : <input id="vitesseSelecteur" type="range" min="0" max="250" step="1" value="470"><span id="vitesseAffiche">33.33 FPS</span></input>
 		<br/><br/>
@@ -28,18 +27,20 @@
 			<input type="button" id="tailleSelecteurBouton" value="Valider"/>
 		</form>
 		<br/>
-		<form id="selecteurOutil">
-			<input type="radio" name="outilsGroupe" value="deplacement" disabled> Déplacement <br>
-				
-			<input type="radio" name="outilsGroupe" value="dessin" checked> Dessiner <br>
-			<input type="radio" name="outilsGroupe" value="patron"> Appliquer patron <br>
-			<input type="radio" name="outilsGroupe" value="creer patron" disabled> Creer patron <br>
-		</form>
-		<form id="patternSelecteur">
-		</form>
-		<p>Maintenir alt enfoncé pour effacer les cases</p>
-		<p>Utiliser la molette de la sourie ou les touches + et - pour zoomer/dézoomer sur la grille</p>
-		<p>Utiliser les touches fléchées pour déplacer la vue de la grille lors d'un zoom</p>
+		<div id="selecteurOutil">
+			<label><input type="radio" name="outilsGroupe" value="deplacement" disabled> Déplacement (Utiliser les touches fléchées pour déplacer la vue)</label>
+				<button id="deplacementLibre">Activer Déplacement libre</button>
+			<br><br>
+			<label><input type="radio" name="outilsGroupe" value="dessin" checked> Dessiner (Maintenir alt enfoncé pour effacer les cases)</label>
+			<br><br>
+			<label><input type="radio" name="outilsGroupe" id="patronRadio" value="patron"> Appliquer patron : </label>
+				<span id="patternSelecteur">
+				</span>
+			<br><br>
+			<input type="radio" name="outilsGroupe" value="creer patron" disabled> Creer patron
+			<br><br>
+		</div>
+		<p>Utiliser la molette de la sourie ou les touches + et - pour zoomer/dézoomer</p>
 		<p id="infoStats"></p>
 		<p id="fill"></p>
 		<p id="testtt"></p>
