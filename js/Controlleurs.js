@@ -27,9 +27,11 @@ function selectionOutil() {
 }
 
 function selectionConnections() {
+	var connectionsSomme = 0;
 	selecteurConnectionsElementHTML.forEach(function(item, index) {
-		if(item.checked) jeu.connections = item.value*1;
+		if(item.checked) connectionsSomme += item.value*1;
 	});
+	jeu.connections = connectionsSomme;
 	canvas.deplacementCanvas([0,0]);
 }
 

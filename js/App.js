@@ -84,6 +84,7 @@ window.onload = function() {
 
 	selecteurConnectionsHTML.oninput = selectionConnections;
 	selecteurConnectionsElementHTML[0].checked = true;
+	selecteurConnectionsElementHTML[1].checked = true;
 	
 	selecteurReglesNaissanceHTML.oninput = changerReglesNaissance;
 	selecteurReglesNaissanceElementHTML.forEach(function(item, index) {
